@@ -1,4 +1,6 @@
 use actix_web::{web, HttpResponse, Responder};
+// use error::ApiError;
+use crate::errors;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -13,10 +15,12 @@ pub struct SignUpResponse {
     pub session: String,
 }
 
-async fn sign_up(form: web::Form<FormData>) -> impl Responder {
-    println!("Hello");
-    println!("{} {}", form.username, form.password);
-    HttpResponse::Ok().body("Signed up!")
+async fn sign_up(form: web::Form<FormData>) -> Result<HttpResponse, errors::ApiError> {
+    if form.password != form.confirm {
+        Err(errors::ApiError::BadClientData)
+    } else {
+        Ok(HttpResponse::Ok().body("Signed up!"))
+    }
 }
 
 // #[get("/sign_in")]

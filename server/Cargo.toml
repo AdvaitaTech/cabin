@@ -11,3 +11,4 @@ serde = { version = "1.0", features = ["derive"] }
 dotenv = "0.15"
 async-trait = "0.1.73"
 test-context = "0.1.4"
+derive_more = "0.99.17"

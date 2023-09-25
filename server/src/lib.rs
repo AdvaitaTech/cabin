@@ -1,6 +1,7 @@
 use actix_web::{get, post, App, HttpResponse, HttpServer, Responder};
 use dotenv::{dotenv, from_filename};
 use std::env;
+pub mod errors;
 pub mod users;
 
 pub fn load_environment() {
