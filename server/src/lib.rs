@@ -1,12 +1,17 @@
-use actix_web::{get, post, App, HttpResponse, HttpServer, Responder};
+use actix_web::{
+    get, post,
+    web::{self, ServiceConfig},
+    App, HttpResponse, Responder,
+};
 use dotenv::{dotenv, from_filename};
 use std::env;
+use tokio_postgres::NoTls;
 pub mod errors;
 pub mod users;
 
 pub fn load_environment() {
     let environment = env::var("RUST_ENV").unwrap_or_else(|_| "".to_string());
-    if cfg!(test) {
+    if environment.eq("test") {
         from_filename(".env.test").ok();
     } else if environment == "production" {
         from_filename(".env.production").ok();
@@ -15,6 +20,35 @@ pub fn load_environment() {
     }
     dotenv().ok();
 }
+
+mod config {
+    use serde::Deserialize;
+    #[derive(Debug, Default, Deserialize)]
+    pub struct ExampleConfig {
+        pub server_addr: String,
+        pub pg: deadpool_postgres::Config,
+    }
+}
+pub fn create_db_pool() -> deadpool_postgres::Pool {
+    let config_ = Config::builder()
+        .add_source(::config::Environment::default())
+        .build()
+        .unwrap();
+
+    let config: config::ExampleConfig = config_.try_deserialize().unwrap();
+
+    config.pg.create_pool(None, NoTls).unwrap()
+}
+
+pub fn configure_api(cfg: &mut ServiceConfig) {
+    let pool = create_db_pool();
+    cfg.app_data(web::Data::new(pool.clone()))
+        .service(hello)
+        .service(echo)
+        .service(users::routes::get());
+}
+
+use ::config::Config;
 
 #[get("/")]
 async fn hello() -> impl Responder {

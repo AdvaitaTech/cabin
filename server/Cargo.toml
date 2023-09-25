@@ -12,3 +12,8 @@ dotenv = "0.15"
 async-trait = "0.1.73"
 test-context = "0.1.4"
 derive_more = "0.99.17"
+deadpool-postgres = { version = "0.10.2", features = ["serde"] }
+tokio-pg-mapper = "0.2.0"
+tokio-pg-mapper-derive = "0.2.0"
+tokio-postgres = "0.7.6"
+config = "0.13.3"

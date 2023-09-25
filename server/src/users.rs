@@ -1,25 +1,37 @@
 use actix_web::{web, HttpResponse, Responder};
+use deadpool_postgres::Pool;
 // use error::ApiError;
-use crate::errors;
-use serde::Deserialize;
+use crate::errors::ApiError;
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
 struct FormData {
-    username: String,
+    email: String,
     password: String,
     confirm: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct SignUpResponse {
     pub session: String,
 }
 
-async fn sign_up(form: web::Form<FormData>) -> Result<HttpResponse, errors::ApiError> {
+async fn sign_up(
+    form: web::Form<FormData>,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse, ApiError> {
     if form.password != form.confirm {
-        Err(errors::ApiError::BadClientData)
+        Err(ApiError::BadClientData)
     } else {
-        Ok(HttpResponse::Ok().body("Signed up!"))
+        let client: deadpool_postgres::Client = pool.get().await.map_err(ApiError::DbError)?;
+        let sql = "INSERT INTO testing.users(email, password) VALUES ($1, $2, $3, $4);";
+
+        match client.query(sql, &[&form.email, &form.password]).await {
+            Ok(_val) => Ok(HttpResponse::Ok().json(SignUpResponse {
+                session: "started".to_string(),
+            })),
+            Err(_err) => Err(ApiError::BadClientData),
+        }
     }
 }
 

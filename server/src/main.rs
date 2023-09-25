@@ -1,16 +1,10 @@
-use actix_web::{App, HttpServer};
-use server;
+use actix_web::{web, App, HttpServer};
+use server::{self, configure_api, errors::ApiError};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    server::load_environment();
-    HttpServer::new(|| {
-        App::new()
-            .service(server::hello)
-            .service(server::echo)
-            .service(server::users::routes::get())
-    })
-    .bind(("127.0.0.1", 8080))?
-    .run()
-    .await
+    HttpServer::new(move || App::new().configure(configure_api))
+        .bind(("127.0.0.1", 8080))?
+        .run()
+        .await
 }

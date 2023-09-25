@@ -1,6 +1,6 @@
 use async_trait;
 use server::users::{routes, SignUpResponse};
-use std::collections::HashMap;
+use std::{collections::HashMap, env};
 use test_context::{test_context, AsyncTestContext};
 
 struct MyContext {}
@@ -8,6 +8,8 @@ struct MyContext {}
 #[async_trait::async_trait]
 impl AsyncTestContext for MyContext {
     async fn setup() -> MyContext {
+        println!("setup run");
+        env::set_var("RUST_ENV", "test");
         MyContext {}
     }
 
@@ -18,15 +20,16 @@ impl AsyncTestContext for MyContext {
 mod tests {
     use super::*;
     use actix_web::{test, App};
+    use server::configure_api;
 
     #[test_context(MyContext)]
     #[actix_web::test]
-    async fn sign_up_incorrect(_ctx: &mut MyContext) {
-        let app = test::init_service(App::new().service(routes::get())).await;
+    async fn sign_up_failure(_ctx: &mut MyContext) {
+        let app = test::init_service(App::new().configure(configure_api)).await;
         let req = test::TestRequest::post()
             .uri("/users/sign_up")
             .set_form(HashMap::from([
-                ("username", "testing@example.com"),
+                ("email", "testing@example.com"),
                 ("password", "testing123"),
                 ("confirm", "fail"),
             ]))
@@ -37,12 +40,12 @@ mod tests {
 
     #[test_context(MyContext)]
     #[actix_web::test]
-    async fn sign_up_correct(_ctx: &mut MyContext) {
+    async fn sign_up_success(_ctx: &mut MyContext) {
         let app = test::init_service(App::new().service(routes::get())).await;
         let req = test::TestRequest::post()
             .uri("/users/sign_up")
             .set_form(HashMap::from([
-                ("username", "testing@example.com"),
+                ("email", "testing@example.com"),
                 ("password", "testing123"),
                 ("confirm", "testing@123"),
             ]))
@@ -59,7 +62,7 @@ mod tests {
         let req = test::TestRequest::post()
             .uri("/users/sign_up")
             .set_form(HashMap::from([
-                ("username", "testing@example.com"),
+                ("email", "testing@example.com"),
                 ("password", "testing123"),
                 ("confirm", "testing@123"),
             ]))
@@ -70,7 +73,7 @@ mod tests {
         let req = test::TestRequest::post()
             .uri("/users/login")
             .set_form(HashMap::from([
-                ("username", "testing@example.com"),
+                ("email", "testing@example.com"),
                 ("password", "testing123"),
             ]))
             .to_request();
