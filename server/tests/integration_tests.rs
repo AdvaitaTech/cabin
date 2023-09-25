@@ -1,13 +1,27 @@
+use async_trait;
 use server::users::{routes, SignUpResponse};
 use std::collections::HashMap;
+use test_context::{test_context, AsyncTestContext};
+
+struct MyContext {}
+
+#[async_trait::async_trait]
+impl AsyncTestContext for MyContext {
+    async fn setup() -> MyContext {
+        MyContext {}
+    }
+
+    async fn teardown(self) {}
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use actix_web::{test, App};
 
+    #[test_context(MyContext)]
     #[actix_web::test]
-    async fn sign_up_incorrect() {
+    async fn sign_up_incorrect(_ctx: &mut MyContext) {
         let app = test::init_service(App::new().service(routes::get())).await;
         let req = test::TestRequest::post()
             .uri("/users/sign_up")
@@ -21,8 +35,9 @@ mod tests {
         assert!(resp.status().is_client_error());
     }
 
+    #[test_context(MyContext)]
     #[actix_web::test]
-    async fn sign_up_correct() {
+    async fn sign_up_correct(_ctx: &mut MyContext) {
         let app = test::init_service(App::new().service(routes::get())).await;
         let req = test::TestRequest::post()
             .uri("/users/sign_up")
@@ -37,8 +52,9 @@ mod tests {
         assert_ne!(resp.session.len(), 0);
     }
 
+    #[test_context(MyContext)]
     #[actix_web::test]
-    async fn sign_up_then_login() {
+    async fn sign_up_then_login(_ctx: &mut MyContext) {
         let app = test::init_service(App::new().service(routes::get())).await;
         let req = test::TestRequest::post()
             .uri("/users/sign_up")
