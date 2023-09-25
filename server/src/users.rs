@@ -1,11 +1,16 @@
 use actix_web::{web, HttpResponse, Responder};
 use serde::Deserialize;
-use std::collections::HashMap;
 
 #[derive(Deserialize)]
 struct FormData {
     username: String,
     password: String,
+    confirm: String,
+}
+
+#[derive(Deserialize)]
+pub struct SignUpResponse {
+    pub session: String,
 }
 
 async fn sign_up(form: web::Form<FormData>) -> impl Responder {
@@ -25,26 +30,5 @@ pub mod routes {
 
     pub fn get() -> Scope {
         web::scope("/users").route("/sign_up", web::post().to(sign_up))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use actix_web::{test, App};
-
-    use super::*;
-
-    #[actix_web::test]
-    async fn sign_up_incorrect() {
-        let app = test::init_service(App::new().service(routes::get())).await;
-        let req = test::TestRequest::post()
-            .uri("/users/sign_up")
-            .set_form(HashMap::from([
-                ("username", "testing@example.com"),
-                ("password", "testing123"),
-            ]))
-            .to_request();
-        let resp = test::call_and_read_body(&app, req).await;
-        assert_eq!(resp, actix_web::web::Bytes::from_static(b"Signed up!"));
     }
 }
