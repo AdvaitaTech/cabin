@@ -1,7 +1,7 @@
 use actix_web::{
     get, post,
     web::{self, ServiceConfig},
-    App, HttpResponse, Responder,
+    HttpResponse, Responder,
 };
 use dotenv::{dotenv, from_filename};
 use std::env;
@@ -27,6 +27,7 @@ mod config {
     #[derive(Debug, Default, Deserialize)]
     pub struct ExampleConfig {
         pub server_addr: String,
+        pub secret: String,
         pub pg: deadpool_postgres::Config,
     }
 }

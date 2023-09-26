@@ -1,8 +1,9 @@
-use actix_web::{web, HttpResponse, Responder};
-use deadpool_postgres::Pool;
-// use error::ApiError;
 use crate::errors::ApiError;
+use actix_web::{web, HttpResponse};
+use deadpool_postgres::Pool;
+use jsonwebtoken::{encode, get_current_timestamp, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
+use std::env;
 
 #[derive(Deserialize)]
 struct FormData {
@@ -14,6 +15,12 @@ struct FormData {
 #[derive(Deserialize, Serialize)]
 pub struct SignUpResponse {
     pub session: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Claims {
+    pub sub: String,
+    pub exp: u64,
 }
 
 async fn sign_up(
@@ -31,14 +38,23 @@ async fn sign_up(
     } else {
         let client: deadpool_postgres::Client = pool.get().await.map_err(ApiError::DbError)?;
         let sql = "INSERT INTO users(email, password) VALUES ($1, $2);";
+        let claims = Claims {
+            sub: form.email.clone(),
+            exp: get_current_timestamp() + 43200,
+        };
+        let secret = env::var("SECRET").unwrap();
+        let token = encode(
+            &Header::default(),
+            &claims,
+            &EncodingKey::from_secret(&secret.as_ref()),
+        )
+        .unwrap();
         println!("doing query");
 
         match client.query(sql, &[&form.email, &form.password]).await {
             Ok(_val) => {
                 println!("got success {:?}", _val);
-                Ok(HttpResponse::Ok().json(SignUpResponse {
-                    session: "started".to_string(),
-                }))
+                Ok(HttpResponse::Ok().json(SignUpResponse { session: token }))
             }
             Err(_err) => {
                 println!("got success {}", _err);

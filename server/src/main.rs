@@ -1,5 +1,5 @@
-use actix_web::{web, App, HttpServer};
-use server::{self, configure_api, errors::ApiError};
+use actix_web::{App, HttpServer};
+use server::configure_api;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

@@ -4,7 +4,7 @@ use actix_web::{
     HttpResponse,
 };
 use deadpool_postgres::PoolError;
-use derive_more::{Display, Error};
+use derive_more::Display;
 
 #[derive(Debug, Display)]
 pub enum ApiError {
