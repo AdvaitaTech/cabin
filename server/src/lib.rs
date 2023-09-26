@@ -7,6 +7,7 @@ use dotenv::{dotenv, from_filename};
 use errors::ApiError;
 use std::env;
 use tokio_postgres::NoTls;
+pub mod entries;
 pub mod errors;
 pub mod users;
 

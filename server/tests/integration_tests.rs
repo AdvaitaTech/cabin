@@ -1,3 +1,4 @@
+use actix_web::test::TestRequest;
 use async_trait;
 use server::users::SignUpResponse;
 use std::{collections::HashMap, env};
@@ -130,5 +131,34 @@ mod tests {
         )
         .unwrap();
         assert_eq!(token1.claims.sub, token2.claims.sub);
+    }
+}
+
+#[cfg(test)]
+mod journal_tests {
+    use super::*;
+    use actix_web::{
+        test::{call_and_read_body_json, call_service, init_service},
+        App,
+    };
+    use server::{configure_api, entries::ListEntriesResponse};
+
+    #[test_context(MyContext)]
+    #[actix_web::test]
+    async fn create_entry(_cts: &MyContext) {
+        let app = init_service(App::new().configure(configure_api)).await;
+        let req = TestRequest::post()
+            .uri("/entries")
+            .set_json(HashMap::from([
+                ("title", "First entry"),
+                ("content", "Wrote something"),
+            ]))
+            .to_request();
+        call_service(&app, req).await;
+        let req = TestRequest::get().uri("/entries").to_request();
+        let resp: ListEntriesResponse = call_and_read_body_json(&app, req).await;
+        assert_eq!(resp.entries.len(), 1);
+        assert_eq!(resp.entries[0].title, "First entry".to_string());
+        assert_eq!(resp.entries[0].content, "Wrote something".to_string());
     }
 }
