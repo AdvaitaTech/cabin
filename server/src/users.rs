@@ -20,17 +20,30 @@ async fn sign_up(
     form: web::Form<FormData>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ApiError> {
+    println!(
+        "got into start {} {} {}",
+        form.password,
+        form.confirm,
+        form.password == form.confirm
+    );
     if form.password != form.confirm {
         Err(ApiError::BadClientData)
     } else {
         let client: deadpool_postgres::Client = pool.get().await.map_err(ApiError::DbError)?;
-        let sql = "INSERT INTO testing.users(email, password) VALUES ($1, $2, $3, $4);";
+        let sql = "INSERT INTO users(email, password) VALUES ($1, $2);";
+        println!("doing query");
 
         match client.query(sql, &[&form.email, &form.password]).await {
-            Ok(_val) => Ok(HttpResponse::Ok().json(SignUpResponse {
-                session: "started".to_string(),
-            })),
-            Err(_err) => Err(ApiError::BadClientData),
+            Ok(_val) => {
+                println!("got success {:?}", _val);
+                Ok(HttpResponse::Ok().json(SignUpResponse {
+                    session: "started".to_string(),
+                }))
+            }
+            Err(_err) => {
+                println!("got success {}", _err);
+                Err(ApiError::BadClientData)
+            }
         }
     }
 }

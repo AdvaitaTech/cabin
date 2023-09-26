@@ -11,6 +11,7 @@ pub mod users;
 
 pub fn load_environment() {
     let environment = env::var("RUST_ENV").unwrap_or_else(|_| "".to_string());
+    println!("env is {environment}");
     if environment.eq("test") {
         from_filename(".env.test").ok();
     } else if environment == "production" {
@@ -41,6 +42,7 @@ pub fn create_db_pool() -> deadpool_postgres::Pool {
 }
 
 pub fn configure_api(cfg: &mut ServiceConfig) {
+    load_environment();
     let pool = create_db_pool();
     cfg.app_data(web::Data::new(pool.clone()))
         .service(hello)
