@@ -2,6 +2,7 @@ use crate::errors::ApiError;
 use actix_web::{web, HttpResponse};
 use deadpool_postgres::Pool;
 use jsonwebtoken::{encode, get_current_timestamp, EncodingKey, Header};
+use pwhash::bcrypt;
 use serde::{Deserialize, Serialize};
 use std::env;
 
@@ -10,6 +11,12 @@ struct FormData {
     email: String,
     password: String,
     confirm: String,
+}
+
+#[derive(Deserialize)]
+struct LoginFormData {
+    email: String,
+    password: String,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -50,8 +57,9 @@ async fn sign_up(
         )
         .unwrap();
         println!("doing query");
+        let password = bcrypt::hash(&form.password.clone()).unwrap();
 
-        match client.query(sql, &[&form.email, &form.password]).await {
+        match client.query(sql, &[&form.email, &password]).await {
             Ok(_val) => {
                 println!("got success {:?}", _val);
                 Ok(HttpResponse::Ok().json(SignUpResponse { session: token }))
@@ -64,16 +72,44 @@ async fn sign_up(
     }
 }
 
-// #[get("/sign_in")]
-// async fn sign_in() -> impl Responder {
-//     HttpResponse::Ok().body("Signed in!")
-// }
-//
+async fn login(
+    form: web::Form<LoginFormData>,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse, ApiError> {
+    let client: deadpool_postgres::Client = pool.get().await.map_err(ApiError::DbError)?;
+    let password = bcrypt::hash(&form.password).unwrap();
+    let sql = "SELECT * FROM users where (email = $1 AND password = $2);";
+
+    match client.query(sql, &[&form.email, &password]).await {
+        Ok(_val) => {
+            println!("got success {:?}", _val);
+            let claims = Claims {
+                sub: form.email.clone(),
+                exp: get_current_timestamp() + 43200,
+            };
+            let secret = env::var("SECRET").unwrap();
+            let token = encode(
+                &Header::default(),
+                &claims,
+                &EncodingKey::from_secret(&secret.as_ref()),
+            )
+            .unwrap();
+            Ok(HttpResponse::Ok().json(SignUpResponse { session: token }))
+        }
+        Err(_err) => {
+            println!("got success {}", _err);
+            Err(ApiError::BadClientData)
+        }
+    }
+}
+
 pub mod routes {
-    use super::sign_up;
+    use super::*;
     use actix_web::{web, Scope};
 
     pub fn get() -> Scope {
-        web::scope("/users").route("/sign_up", web::post().to(sign_up))
+        web::scope("/users")
+            .route("/sign_up", web::post().to(sign_up))
+            .route("/login", web::post().to(login))
     }
 }

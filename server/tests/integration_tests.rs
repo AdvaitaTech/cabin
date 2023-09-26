@@ -91,29 +91,44 @@ mod tests {
         assert!(resp.status().is_client_error());
     }
 
-    // #[test_context(MyContext)]
-    // #[actix_web::test]
-    // async fn sign_up_then_login(_ctx: &mut MyContext) {
-    //     let app = test::init_service(App::new().service(routes::get())).await;
-    //     let req = test::TestRequest::post()
-    //         .uri("/users/sign_up")
-    //         .set_form(HashMap::from([
-    //             ("email", "testing@example.com"),
-    //             ("password", "testing123"),
-    //             ("confirm", "testing@123"),
-    //         ]))
-    //         .to_request();
-    //     let resp: SignUpResponse = test::call_and_read_body_json(&app, req).await;
-    //     assert_eq!(resp.session.is_empty(), false);
-    //     assert_ne!(resp.session.len(), 0);
-    //     let req = test::TestRequest::post()
-    //         .uri("/users/login")
-    //         .set_form(HashMap::from([
-    //             ("email", "testing@example.com"),
-    //             ("password", "testing123"),
-    //         ]))
-    //         .to_request();
-    //     let resp2: SignUpResponse = test::call_and_read_body_json(&app, req).await;
-    //     assert_eq!(resp2.session, resp.session);
-    // }
+    #[test_context(MyContext)]
+    #[actix_web::test]
+    async fn sign_up_then_login(_ctx: &mut MyContext) {
+        let app = test::init_service(App::new().configure(configure_api)).await;
+        let secret = env::var("SECRET").unwrap();
+        println!("first call");
+        let req = test::TestRequest::post()
+            .uri("/users/sign_up")
+            .set_form(HashMap::from([
+                ("email", "testing3@example.com"),
+                ("password", "testing@123"),
+                ("confirm", "testing@123"),
+            ]))
+            .to_request();
+        let resp: SignUpResponse = test::call_and_read_body_json(&app, req).await;
+        let token1 = decode::<Claims>(
+            &resp.session,
+            &DecodingKey::from_secret(&secret.as_ref()),
+            &Validation::default(),
+        )
+        .unwrap();
+        assert_eq!(resp.session.is_empty(), false);
+        assert_ne!(resp.session.len(), 0);
+        let req = test::TestRequest::post()
+            .uri("/users/login")
+            .set_form(HashMap::from([
+                ("email", "testing3@example.com"),
+                ("password", "testing@123"),
+            ]))
+            .to_request();
+        println!("second call");
+        let resp2: SignUpResponse = test::call_and_read_body_json(&app, req).await;
+        let token2 = decode::<Claims>(
+            &resp2.session,
+            &DecodingKey::from_secret(&secret.as_ref()),
+            &Validation::default(),
+        )
+        .unwrap();
+        assert_eq!(token1.claims.sub, token2.claims.sub);
+    }
 }

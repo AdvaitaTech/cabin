@@ -4,6 +4,7 @@ use actix_web::{
     HttpResponse, Responder,
 };
 use dotenv::{dotenv, from_filename};
+use errors::ApiError;
 use std::env;
 use tokio_postgres::NoTls;
 pub mod errors;
@@ -46,6 +47,10 @@ pub fn configure_api(cfg: &mut ServiceConfig) {
     load_environment();
     let pool = create_db_pool();
     cfg.app_data(web::Data::new(pool.clone()))
+        .app_data(web::FormConfig::default().error_handler(|_err, _req| {
+            println!("got error {:#}", _err);
+            ApiError::BadClientData.into()
+        }))
         .service(hello)
         .service(echo)
         .service(users::routes::get());
