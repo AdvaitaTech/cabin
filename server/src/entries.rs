@@ -14,6 +14,7 @@ pub struct ListEntriesResponse {
     pub entries: Vec<JournalEntry>,
 }
 
+#[derive(Deserialize, Serialize)]
 pub struct AddEntryResponse {
     pub id: String,
     pub title: String,

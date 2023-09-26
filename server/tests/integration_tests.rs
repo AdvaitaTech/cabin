@@ -141,24 +141,71 @@ mod journal_tests {
         test::{call_and_read_body_json, call_service, init_service},
         App,
     };
-    use server::{configure_api, entries::ListEntriesResponse};
+    use server::{
+        configure_api,
+        entries::{AddEntryResponse, ListEntriesResponse},
+    };
 
     #[test_context(MyContext)]
     #[actix_web::test]
     async fn create_entry(_cts: &MyContext) {
         let app = init_service(App::new().configure(configure_api)).await;
         let req = TestRequest::post()
+            .uri("/users/login")
+            .set_form(HashMap::from([
+                ("email", "testing100@example.com"),
+                ("password", "testing@123"),
+            ]))
+            .to_request();
+        let token: SignUpResponse = call_and_read_body_json(&app, req).await;
+        let req = TestRequest::post()
             .uri("/entries")
+            .insert_header(("Authorization", format!("Bearer {}", token.session)))
             .set_json(HashMap::from([
                 ("title", "First entry"),
                 ("content", "Wrote something"),
             ]))
             .to_request();
         call_service(&app, req).await;
-        let req = TestRequest::get().uri("/entries").to_request();
+        let req = TestRequest::get()
+            .uri("/entries")
+            .insert_header(("Authorization", format!("Bearer {}", token.session)))
+            .to_request();
         let resp: ListEntriesResponse = call_and_read_body_json(&app, req).await;
         assert_eq!(resp.entries.len(), 1);
         assert_eq!(resp.entries[0].title, "First entry".to_string());
         assert_eq!(resp.entries[0].content, "Wrote something".to_string());
+    }
+
+    #[test_context(MyContext)]
+    #[actix_web::test]
+    async fn save_entry(_cts: &MyContext) {
+        let app = init_service(App::new().configure(configure_api)).await;
+        let req = TestRequest::post()
+            .uri("/users/login")
+            .set_form(HashMap::from([
+                ("email", "testing100@example.com"),
+                ("password", "testing@123"),
+            ]))
+            .to_request();
+        let token: SignUpResponse = call_and_read_body_json(&app, req).await;
+        let req = TestRequest::post()
+            .uri("/entries")
+            .insert_header(("Authorization", format!("Bearer {}", token.session)))
+            .set_json(HashMap::from([
+                ("title", "Second entry"),
+                ("content", "Wrote something"),
+            ]))
+            .to_request();
+        let entry: AddEntryResponse = call_and_read_body_json(&app, req).await;
+        let req = TestRequest::put()
+            .uri(&format!("/entries/{}", entry.id)[..])
+            .insert_header(("Authorization", format!("Bearer {}", token.session)))
+            .set_json(HashMap::from([("content", "Wrote something else")]))
+            .to_request();
+        let resp: ListEntriesResponse = call_and_read_body_json(&app, req).await;
+        assert_eq!(resp.entries.len(), 1);
+        assert_eq!(resp.entries[0].title, "First entry".to_string());
+        assert_eq!(resp.entries[0].content, "Wrote something else".to_string());
     }
 }
