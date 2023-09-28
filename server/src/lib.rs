@@ -13,7 +13,6 @@ pub mod users;
 
 pub fn load_environment() {
     let environment = env::var("RUST_ENV").unwrap_or_else(|_| "".to_string());
-    println!("env is {environment}");
     if environment.eq("test") {
         from_filename(".env.test").ok();
     } else if environment == "production" {
@@ -54,7 +53,8 @@ pub fn configure_api(cfg: &mut ServiceConfig) {
         }))
         .service(hello)
         .service(echo)
-        .service(users::routes::get());
+        .service(users::routes::get())
+        .service(entries::routes::get());
 }
 
 use ::config::Config;

@@ -19,6 +19,9 @@ pub enum ApiError {
 
     #[display(fmt = "db")]
     DbError(PoolError),
+
+    #[display(fmt = "unauthorized")]
+    Unauthorized,
 }
 
 impl std::error::Error for ApiError {}
@@ -36,6 +39,7 @@ impl error::ResponseError for ApiError {
             ApiError::BadClientData => StatusCode::BAD_REQUEST,
             ApiError::Timeout => StatusCode::GATEWAY_TIMEOUT,
             ApiError::DbError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            ApiError::Unauthorized => StatusCode::UNAUTHORIZED,
         }
     }
 }

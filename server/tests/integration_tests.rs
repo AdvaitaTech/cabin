@@ -9,7 +9,6 @@ struct MyContext {}
 #[async_trait::async_trait]
 impl AsyncTestContext for MyContext {
     async fn setup() -> MyContext {
-        println!("setup run");
         env::set_var("RUST_ENV", "test");
         MyContext {}
     }
@@ -21,7 +20,9 @@ impl AsyncTestContext for MyContext {
 mod tests {
     use super::*;
     use actix_web::{test, App};
-    use jsonwebtoken::{decode, DecodingKey, Validation};
+    use jsonwebtoken::{
+        decode, encode, get_current_timestamp, DecodingKey, EncodingKey, Header, Validation,
+    };
     use server::{configure_api, users::Claims};
 
     #[test_context(MyContext)]
@@ -97,7 +98,6 @@ mod tests {
     async fn sign_up_then_login(_ctx: &mut MyContext) {
         let app = test::init_service(App::new().configure(configure_api)).await;
         let secret = env::var("SECRET").unwrap();
-        println!("first call");
         let req = test::TestRequest::post()
             .uri("/users/sign_up")
             .set_form(HashMap::from([
@@ -122,7 +122,6 @@ mod tests {
                 ("password", "testing@123"),
             ]))
             .to_request();
-        println!("second call");
         let resp2: SignUpResponse = test::call_and_read_body_json(&app, req).await;
         let token2 = decode::<Claims>(
             &resp2.session,
@@ -159,16 +158,18 @@ mod journal_tests {
             .to_request();
         let token: SignUpResponse = call_and_read_body_json(&app, req).await;
         let req = TestRequest::post()
-            .uri("/entries")
+            .uri("/entries/")
             .insert_header(("Authorization", format!("Bearer {}", token.session)))
             .set_json(HashMap::from([
                 ("title", "First entry"),
                 ("content", "Wrote something"),
             ]))
             .to_request();
-        call_service(&app, req).await;
+        let resp: AddEntryResponse = call_and_read_body_json(&app, req).await;
+        assert_eq!(resp.title, "First entry".to_string());
+        assert_eq!(resp.content, "Wrote something".to_string());
         let req = TestRequest::get()
-            .uri("/entries")
+            .uri("/entries/")
             .insert_header(("Authorization", format!("Bearer {}", token.session)))
             .to_request();
         let resp: ListEntriesResponse = call_and_read_body_json(&app, req).await;
@@ -184,13 +185,13 @@ mod journal_tests {
         let req = TestRequest::post()
             .uri("/users/login")
             .set_form(HashMap::from([
-                ("email", "testing100@example.com"),
+                ("email", "testing101@example.com"),
                 ("password", "testing@123"),
             ]))
             .to_request();
         let token: SignUpResponse = call_and_read_body_json(&app, req).await;
         let req = TestRequest::post()
-            .uri("/entries")
+            .uri("/entries/")
             .insert_header(("Authorization", format!("Bearer {}", token.session)))
             .set_json(HashMap::from([
                 ("title", "Second entry"),
@@ -203,9 +204,14 @@ mod journal_tests {
             .insert_header(("Authorization", format!("Bearer {}", token.session)))
             .set_json(HashMap::from([("content", "Wrote something else")]))
             .to_request();
+        call_service(&app, req).await;
+        let req = TestRequest::get()
+            .uri("/entries/")
+            .insert_header(("Authorization", format!("Bearer {}", token.session)))
+            .to_request();
         let resp: ListEntriesResponse = call_and_read_body_json(&app, req).await;
         assert_eq!(resp.entries.len(), 1);
-        assert_eq!(resp.entries[0].title, "First entry".to_string());
+        assert_eq!(resp.entries[0].title, "Second entry".to_string());
         assert_eq!(resp.entries[0].content, "Wrote something else".to_string());
     }
 }

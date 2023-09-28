@@ -34,12 +34,6 @@ async fn sign_up(
     form: web::Form<FormData>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ApiError> {
-    println!(
-        "got into start {} {} {}",
-        form.password,
-        form.confirm,
-        form.password == form.confirm
-    );
     if form.password != form.confirm {
         Err(ApiError::BadClientData)
     } else {
@@ -56,7 +50,6 @@ async fn sign_up(
             &EncodingKey::from_secret(&secret.as_ref()),
         )
         .unwrap();
-        println!("doing query");
         let password = bcrypt::hash(&form.password.clone()).unwrap();
 
         match client.query(sql, &[&form.email, &password]).await {
@@ -65,7 +58,7 @@ async fn sign_up(
                 Ok(HttpResponse::Ok().json(SignUpResponse { session: token }))
             }
             Err(_err) => {
-                println!("got success {}", _err);
+                println!("got error {}", _err);
                 Err(ApiError::BadClientData)
             }
         }
@@ -82,7 +75,7 @@ async fn login(
 
     match client.query(sql, &[&form.email, &password]).await {
         Ok(_val) => {
-            println!("got success {:?}", _val);
+            println!("got login success {:?}", _val);
             let claims = Claims {
                 sub: form.email.clone(),
                 exp: get_current_timestamp() + 43200,
@@ -97,7 +90,7 @@ async fn login(
             Ok(HttpResponse::Ok().json(SignUpResponse { session: token }))
         }
         Err(_err) => {
-            println!("got success {}", _err);
+            println!("got login error {}", _err);
             Err(ApiError::BadClientData)
         }
     }
