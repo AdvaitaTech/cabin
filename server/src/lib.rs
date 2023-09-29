@@ -1,12 +1,15 @@
+use actix_files::NamedFile;
 use actix_web::{
-    get, post,
+    error,
     web::{self, ServiceConfig},
-    HttpResponse, Responder,
+    Error, HttpRequest, HttpResponse,
 };
+use awc::Client;
 use dotenv::{dotenv, from_filename};
 use errors::ApiError;
 use std::env;
 use tokio_postgres::NoTls;
+use url::Url;
 pub mod entries;
 pub mod errors;
 pub mod users;
@@ -29,6 +32,7 @@ mod config {
     pub struct ExampleConfig {
         pub server_addr: String,
         pub secret: String,
+        pub frontend_server: String,
         pub pg: deadpool_postgres::Config,
     }
 }
@@ -47,53 +51,45 @@ pub fn configure_api(cfg: &mut ServiceConfig) {
     load_environment();
     let pool = create_db_pool();
     cfg.app_data(web::Data::new(pool.clone()))
+        .app_data(web::Data::new(Client::default()))
         .app_data(web::FormConfig::default().error_handler(|_err, _req| {
             println!("got error {:#}", _err);
             ApiError::BadClientData.into()
         }))
-        .service(hello)
-        .service(echo)
         .service(users::routes::get())
-        .service(entries::routes::get());
+        .service(entries::routes::get())
+        .route("", web::get().to(render_index))
+        .route("/", web::get().to(render_index))
+        .route("/{url:.*}", web::get().to(proxy_frontend));
 }
 
 use ::config::Config;
 
-#[get("/")]
-async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello World!")
+async fn render_index() -> Result<NamedFile, std::io::Error> {
+    Ok(NamedFile::open("public/index.html")?)
 }
 
-#[post("/echo")]
-async fn echo(req_body: String) -> impl Responder {
-    HttpResponse::Ok().body(req_body)
-}
+async fn proxy_frontend(
+    payload: web::Payload,
+    client: web::Data<Client>,
+    req: HttpRequest,
+) -> Result<HttpResponse, Error> {
+    let frontend = env::var("FRONTEND_SERVER").unwrap();
+    let mut proxy = Url::parse(&frontend).unwrap();
+    proxy.set_path(req.uri().path());
+    proxy.set_query(req.uri().query());
 
-#[cfg(test)]
-mod tests {
-    use actix_web::{http::header::ContentType, test, App};
-
-    use super::*;
-
-    #[actix_web::test]
-    async fn test_hello() {
-        let app = test::init_service(App::new().service(hello)).await;
-        let req = test::TestRequest::default()
-            .insert_header(ContentType::plaintext())
-            .to_request();
-        let resp = test::call_and_read_body(&app, req).await;
-        assert_eq!(resp, actix_web::web::Bytes::from_static(b"Hello World!"));
+    println!("Path is {:?}", proxy.as_str());
+    let res = client
+        .request_from(proxy.as_str(), req.head())
+        .no_decompress()
+        .send_stream(payload)
+        .await
+        .map_err(error::ErrorInternalServerError)?;
+    let mut resp = HttpResponse::build(res.status());
+    for (header_name, header_value) in res.headers().iter().filter(|(h, _)| *h != "connection") {
+        resp.insert_header((header_name.clone(), header_value.clone()));
     }
 
-    #[actix_web::test]
-    async fn test_echo() {
-        let app = test::init_service(App::new().service(echo)).await;
-        let message = String::from("wl!");
-        let req = test::TestRequest::post()
-            .uri("/echo")
-            .set_payload(message.clone())
-            .to_request();
-        let resp = test::call_and_read_body(&app, req).await;
-        assert_eq!(resp, message.as_bytes());
-    }
+    Ok(resp.streaming(res))
 }
