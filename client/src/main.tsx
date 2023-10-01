@@ -1,34 +1,165 @@
-import 'vite/modulepreload-polyfill'
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import './styles/main.scss'
-import Login from './Login'
-import { RouterProvider, createBrowserRouter } from 'react-router-dom'
-import Register from './Register'
-import WritePage from './Writer'
+import "vite/modulepreload-polyfill";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./styles/main.scss";
+import Login from "./Login";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import Register from "./Register";
+import WritePage from "./Writer";
 
 const router = createBrowserRouter([
   {
+    path: "/",
+    element: <Register />,
+    loader: ({}) => {
+      if (sessionStorage.getItem("token")) {
+        return Response.redirect("/write");
+      }
+      return {};
+    },
+  },
+  {
+    path: "/register",
+    element: <Register />,
+    loader: ({ params }) => {
+      if (sessionStorage.getItem("token")) {
+        if (params.then) return Response.redirect(params.then);
+        else return Response.redirect("/write");
+      }
+      return {};
+    },
+  },
+  {
+    path: '/api/users/sign_up',
+    action: async ({ params, request }) => {
+      const form = await request.formData();
+      console.log('method', request.url, request, form);
 
-    path: '/',
-    element: <Register />
-  },
-  {
-    path: '/register',
-    element: <Register />
-  },
-  {
-    path: '/login',
-    element: <Login />
-  },
-  {
-    path: '/write',
-    element: <WritePage />
-  }
-])
+for (const pair of form.entries()) {
+  console.log(`${pair[0]}, ${pair[1]}`);
+}
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+      return await fetch(request.url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams(form as any)
+      })
+        .then(async (res) => {
+          return res.json();
+        })
+        .then(async (json) => {
+          sessionStorage.setItem("token", json.token);
+          if (params.then) return Response.redirect(params.then);
+          else return Response.redirect("/write");
+        })
+        .catch((err) => {
+          console.error('Error during auth', err)
+          sessionStorage.removeItem("token");
+          let newParams = {
+            ...params,
+            error: "AuthError",
+          };
+          return Response.redirect(
+            "/register?" +
+              Object.entries(newParams)
+                .map((kv) => kv.map(encodeURIComponent).join("="))
+                .join("&")
+          );
+        });
+    },
+  },
+  {
+    path: '/api/users/login',
+    action: async ({ params, request }) => {
+      return await fetch(request.url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "x-www-form-urlencoded",
+        },
+        body: await request.formData(),
+      })
+        .then(async (res) => {
+          return res.json();
+        })
+        .then(async (json) => {
+          sessionStorage.setItem("token", json.token);
+          if (params.then) return Response.redirect(params.then);
+          else return Response.redirect("/write");
+        })
+        .catch(() => {
+          sessionStorage.removeItem("token");
+          console.error('')
+          const newParams = {
+            ...params,
+            error: "AuthError",
+          };
+          return Response.redirect(
+            "/register?" +
+              Object.entries(newParams)
+                .map((kv) => kv.map(encodeURIComponent).join("="))
+                .join("&")
+          );
+        });
+    },
+  },
+  {
+    path: "/login",
+    element: <Login />,
+    action: async ({ params, request }) => {
+      return await fetch(request.url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "x-www-form-urlencoded",
+        },
+        body: await request.formData(),
+      })
+        .then(async (res) => {
+          return res.json();
+        })
+        .then(async (json) => {
+          sessionStorage.setItem("token", json.token);
+          if (params.then) return Response.redirect(params.then);
+          else return Response.redirect("/write");
+        })
+        .catch(() => {
+          sessionStorage.removeItem("token");
+          console.error('')
+          const newParams = {
+            ...params,
+            error: "AuthError",
+          };
+          return Response.redirect(
+            "/register?" +
+              Object.entries(newParams)
+                .map((kv) => kv.map(encodeURIComponent).join("="))
+                .join("&")
+          );
+        });
+    },
+    loader: ({ params }) => {
+      if (sessionStorage.getItem("token")) {
+        if (params.then) return Response.redirect(params.then);
+        else return Response.redirect("/write");
+      }
+      return {};
+    },
+  },
+  {
+    path: "/write",
+    element: <WritePage />,
+    loader: ({}) => {
+      if (!sessionStorage.getItem("token")) {
+        return Response.redirect("/register?then=/write");
+      }
+      return {};
+    },
+  },
+]);
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <RouterProvider router={router} />
-  </React.StrictMode>,
-)
+  </React.StrictMode>
+);

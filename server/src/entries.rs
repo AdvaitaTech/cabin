@@ -185,7 +185,7 @@ pub mod routes {
     use actix_web::{web, Scope};
 
     pub fn get() -> Scope {
-        web::scope("/entries")
+        web::scope("/api/entries")
             .route("/", web::post().to(create))
             .route("/", web::get().to(list))
             .route("/{id}", web::put().to(save))

@@ -1,4 +1,6 @@
+import { useState } from "react";
 import MaterialInput from "./components/MaterialInput/MaterialInput";
+import { Form } from "react-router-dom";
 
 const Login = () => {
   return (
@@ -28,23 +30,26 @@ const Login = () => {
         />
       </div>
       <div className="flex-1 flex items-center justify-center bg-background-200">
-        <form className="flex flex-col w-[500px] border-primary-200 border rounded-lg shadow-secondary-400 bg-white-500 py-10 px-5">
+        <Form className="flex flex-col w-[500px] border-primary-200 border rounded-lg shadow-secondary-400 bg-white-500 py-10 px-5" method="POST" action="/api/users/login">
           <h2 className="mb mx-auto text-xl font-bold">Start writing</h2>
           <h4 className="mb-10 mx-auto text-md text-white-800">
             By entering your details
           </h4>
-          <MaterialInput title="Email" type="text" />
-          <MaterialInput title="Password" type="password" className="mt-2" />
-          <button className="w-full mt-10 py-3 bg-primary-500 text-white-500 font-semibold rounded-lg ">
+          <MaterialInput name="email" title="Email" type="text" />
+          <MaterialInput name="password" title="Password" type="password" className="mt-2" />
+          <button className="w-full mt-10 py-3 bg-primary-500 text-white-500 font-semibold rounded-lg disabled:bg-white-700">
             Login
           </button>
           <div className="text-sm text-white-800 mt-20 mx-auto">
             <span>Don't have an account? </span>
-            <a href="/register" className="text-md text-primary-500 font-semibold">
+            <a
+              href="/register"
+              className="text-md text-primary-500 font-semibold"
+            >
               Sign up
             </a>
           </div>
-        </form>
+        </Form>
       </div>
     </div>
   );

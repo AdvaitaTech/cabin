@@ -69,6 +69,7 @@ async fn login(
     form: web::Form<LoginFormData>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ApiError> {
+    println!("found the login req");
     let client: deadpool_postgres::Client = pool.get().await.map_err(ApiError::DbError)?;
     let password = bcrypt::hash(&form.password).unwrap();
     let sql = "SELECT * FROM users where (email = $1 AND password = $2);";
@@ -101,7 +102,7 @@ pub mod routes {
     use actix_web::{web, Scope};
 
     pub fn get() -> Scope {
-        web::scope("/users")
+        web::scope("/api/users")
             .route("/sign_up", web::post().to(sign_up))
             .route("/login", web::post().to(login))
     }

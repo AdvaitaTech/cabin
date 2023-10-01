@@ -30,7 +30,7 @@ mod tests {
     async fn sign_up_failure(_ctx: &mut MyContext) {
         let app = test::init_service(App::new().configure(configure_api)).await;
         let req = test::TestRequest::post()
-            .uri("/users/sign_up")
+            .uri("/api/users/sign_up")
             .set_form(HashMap::from([
                 ("email", "testing@example.com"),
                 ("password", "testing123"),
@@ -46,7 +46,7 @@ mod tests {
     async fn sign_up_success(_ctx: &mut MyContext) {
         let app = test::init_service(App::new().configure(configure_api)).await;
         let req = test::TestRequest::post()
-            .uri("/users/sign_up")
+            .uri("/api/users/sign_up")
             .set_form(HashMap::from([
                 ("email", "testing@example.com"),
                 ("password", "testing@123"),
@@ -71,7 +71,7 @@ mod tests {
     async fn sign_up_duplicate(_ctx: &mut MyContext) {
         let app = test::init_service(App::new().configure(configure_api)).await;
         let req = test::TestRequest::post()
-            .uri("/users/sign_up")
+            .uri("/api/users/sign_up")
             .set_form(HashMap::from([
                 ("email", "testing1@example.com"),
                 ("password", "testing@123"),
@@ -82,7 +82,7 @@ mod tests {
         assert_eq!(resp.session.is_empty(), false);
         assert_ne!(resp.session.len(), 0);
         let req = test::TestRequest::post()
-            .uri("/users/sign_up")
+            .uri("/api/users/sign_up")
             .set_form(HashMap::from([
                 ("email", "testing1@example.com"),
                 ("password", "testing@123"),
@@ -99,7 +99,7 @@ mod tests {
         let app = test::init_service(App::new().configure(configure_api)).await;
         let secret = env::var("SECRET").unwrap();
         let req = test::TestRequest::post()
-            .uri("/users/sign_up")
+            .uri("/api/users/sign_up")
             .set_form(HashMap::from([
                 ("email", "testing3@example.com"),
                 ("password", "testing@123"),
@@ -116,7 +116,7 @@ mod tests {
         assert_eq!(resp.session.is_empty(), false);
         assert_ne!(resp.session.len(), 0);
         let req = test::TestRequest::post()
-            .uri("/users/login")
+            .uri("/api/users/login")
             .set_form(HashMap::from([
                 ("email", "testing3@example.com"),
                 ("password", "testing@123"),
@@ -150,7 +150,7 @@ mod journal_tests {
     async fn create_entry(_cts: &MyContext) {
         let app = init_service(App::new().configure(configure_api)).await;
         let req = TestRequest::post()
-            .uri("/users/login")
+            .uri("/api/users/login")
             .set_form(HashMap::from([
                 ("email", "testing100@example.com"),
                 ("password", "testing@123"),
@@ -158,7 +158,7 @@ mod journal_tests {
             .to_request();
         let token: SignUpResponse = call_and_read_body_json(&app, req).await;
         let req = TestRequest::post()
-            .uri("/entries/")
+            .uri("/api/entries/")
             .insert_header(("Authorization", format!("Bearer {}", token.session)))
             .set_json(HashMap::from([
                 ("title", "First entry"),
@@ -169,7 +169,7 @@ mod journal_tests {
         assert_eq!(resp.title, "First entry".to_string());
         assert_eq!(resp.content, "Wrote something".to_string());
         let req = TestRequest::get()
-            .uri("/entries/")
+            .uri("/api/entries/")
             .insert_header(("Authorization", format!("Bearer {}", token.session)))
             .to_request();
         let resp: ListEntriesResponse = call_and_read_body_json(&app, req).await;
@@ -183,7 +183,7 @@ mod journal_tests {
     async fn save_entry(_cts: &MyContext) {
         let app = init_service(App::new().configure(configure_api)).await;
         let req = TestRequest::post()
-            .uri("/users/login")
+            .uri("/api/users/login")
             .set_form(HashMap::from([
                 ("email", "testing101@example.com"),
                 ("password", "testing@123"),
@@ -191,7 +191,7 @@ mod journal_tests {
             .to_request();
         let token: SignUpResponse = call_and_read_body_json(&app, req).await;
         let req = TestRequest::post()
-            .uri("/entries/")
+            .uri("/api/entries/")
             .insert_header(("Authorization", format!("Bearer {}", token.session)))
             .set_json(HashMap::from([
                 ("title", "Second entry"),
@@ -200,13 +200,13 @@ mod journal_tests {
             .to_request();
         let entry: AddEntryResponse = call_and_read_body_json(&app, req).await;
         let req = TestRequest::put()
-            .uri(&format!("/entries/{}", entry.id)[..])
+            .uri(&format!("/api/entries/{}", entry.id)[..])
             .insert_header(("Authorization", format!("Bearer {}", token.session)))
             .set_json(HashMap::from([("content", "Wrote something else")]))
             .to_request();
         call_service(&app, req).await;
         let req = TestRequest::get()
-            .uri("/entries/")
+            .uri("/api/entries/")
             .insert_header(("Authorization", format!("Bearer {}", token.session)))
             .to_request();
         let resp: ListEntriesResponse = call_and_read_body_json(&app, req).await;
