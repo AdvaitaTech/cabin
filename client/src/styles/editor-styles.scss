@@ -1,22 +1,23 @@
+::selection {
+  background-color: var(--secondary-600);
+
+}
+
 #writer-page {
   // Base styles
   letter-spacing: -0.5px;
-  line-height: 20px;
-  font-size: 30px;
+  font-size: 25px;
 
   .editor {
-    width: 1000px;
-    padding: 0 40px;
-    background: white;
     min-height: 100%;
-    display: flex;
     position: relative;
   }
 
   .bubble-menu {
     display: flex;
     border: 1px solid black;
-    padding: 5px;
+    padding: 10px;
+    gap: 20px;
     // visibility: hidden;
     background: white;
     width: auto;
@@ -30,18 +31,22 @@
 
       &.active {
         i {
-          color: var(--adv-primary);
+          color: var(--primary-500);
         }
       }
     }
 
     i {
-      padding: 0px 8px;
       cursor: pointer;
       color: var(--adv-tertiary);
 
       &.active {
         color: var(--adv-primary);
+      }
+
+      svg {
+        width: 30px;
+        height: 30px;
       }
     }
   }
@@ -50,7 +55,8 @@
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    margin-left: -35px;
+    margin-left: -55px;
+    margin-top: 5px;
     gap: 10px;
 
     i {
@@ -58,6 +64,12 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      margin-right: 50px;
+
+       svg {
+         width: 30px;
+         height: 30px;
+       }
     }
 
     .block-menu {
@@ -69,25 +81,30 @@
         rgba(15, 15, 15, 0.1) 0px 3px 6px, rgba(15, 15, 15, 0.2) 0px 9px 24px;
 
       .menu-item {
-        padding: 5px 10px;
         cursor: pointer;
+        border-bottom: 1px solid black;
+        margin: 0;
 
         .menu-wrapper {
-          padding: 5px 10px;
+          padding: 5px;
           text-align: left;
           border-radius: 5px;
+          margin: 0;
 
           &:hover {
-            background: var(--adv-light);
+            background: var(--secondary-200);
           }
 
           .menu-title {
             font-size: 15px;
+            color: black;
+            margin: 0;
           }
 
           .menu-subtitle {
+            margin: 0;
             font-size: 12px;
-            color: var(--adv-secondary);
+            color: var(--white-800);
           }
         }
       }
@@ -151,7 +168,6 @@
   }
 
   .insert-link-box {
-    font-family: var(--adv-font);
     width: 300px;
     flex-direction: column;
     display: flex;
@@ -181,7 +197,6 @@
       rgba(15, 15, 15, 0.1) 0px 3px 6px, rgba(15, 15, 15, 0.2) 0px 9px 24px;
 
     button {
-      font-family: var(--adv-font);
       border: none;
       background: transparent;
       cursor: pointer;
@@ -230,7 +245,6 @@
     width: 100%;
     padding: 10px 20px;
     font-size: 15px;
-    font-family: Jost;
     background: var(--adv-light);
     cursor: pointer;
 
@@ -304,7 +318,6 @@
     width: 100%;
     padding: 10px 20px;
     font-size: 15px;
-    font-family: Jost;
     background: var(--adv-light);
     cursor: pointer;
     flex-direction: column;
@@ -342,7 +355,6 @@
     font-style: italic;
     font-weight: 400;
     font-size: 26px;
-    line-height: 35px;
     letter-spacing: -0.17px;
     color: var(--adv-primary);
     border-left: 1px solid var(--adv-primary);
@@ -357,12 +369,10 @@
     padding: 20px;
     background: var(--adv-tertiary);
     color: var(--adv-primary);
-    font-family: var(--adv-font);
     font-size: 20px;
   }
 
   code {
-    font-family: "Space Mono", monospace;
     background: var(--adv-light);
     color: var(--adv-primary);
     padding: 20px;

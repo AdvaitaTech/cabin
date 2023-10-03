@@ -142,8 +142,8 @@ async fn fetch(
     let rows = match client.query(select, &[&entry_id, &email]).await {
         Ok(v) => Ok(v),
         Err(err) => {
-            println!("Error in db call: {:?}", err);
-            Err(ApiError::Unauthorized)
+            println!("Error in db call or author is wrong: {:?}", err);
+            Err(ApiError::Forbidden)
         }
     }?;
     let journals: Vec<JournalEntry> = rows

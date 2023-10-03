@@ -6,6 +6,11 @@ import Login from "./Login";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import Register from "./Register";
 import WritePage from "./Writer";
+import {
+  createJournalEntryRequest,
+  fetchJournalEntryRequest,
+} from "./utils/network";
+import { TokenError } from "./utils/errors";
 
 const router = createBrowserRouter([
   {
@@ -30,32 +35,32 @@ const router = createBrowserRouter([
     },
   },
   {
-    path: '/api/users/sign_up',
+    path: "/api/users/sign_up",
     action: async ({ params, request }) => {
       const form = await request.formData();
-      console.log('method', request.url, request, form);
+      console.log("method", request.url, request, form);
 
-for (const pair of form.entries()) {
-  console.log(`${pair[0]}, ${pair[1]}`);
-}
+      for (const pair of form.entries()) {
+        console.log(`${pair[0]}, ${pair[1]}`);
+      }
 
       return await fetch(request.url, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: new URLSearchParams(form as any)
+        body: new URLSearchParams(form as any),
       })
         .then(async (res) => {
           return res.json();
         })
         .then(async (json) => {
-          sessionStorage.setItem("token", json.token);
+          sessionStorage.setItem("token", json.session);
           if (params.then) return Response.redirect(params.then);
           else return Response.redirect("/write");
         })
         .catch((err) => {
-          console.error('Error during auth', err)
+          console.error("Error during auth", err);
           sessionStorage.removeItem("token");
           let newParams = {
             ...params,
@@ -71,26 +76,27 @@ for (const pair of form.entries()) {
     },
   },
   {
-    path: '/api/users/login',
+    path: "/api/users/login",
     action: async ({ params, request }) => {
       return await fetch(request.url, {
         method: "POST",
         headers: {
-          "Content-Type": "x-www-form-urlencoded",
+          "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: await request.formData(),
+        body: new URLSearchParams((await request.formData()) as any),
       })
         .then(async (res) => {
           return res.json();
         })
         .then(async (json) => {
-          sessionStorage.setItem("token", json.token);
+          console.log("token", json);
+          sessionStorage.setItem("token", json.session);
           if (params.then) return Response.redirect(params.then);
           else return Response.redirect("/write");
         })
         .catch(() => {
           sessionStorage.removeItem("token");
-          console.error('')
+          console.error("");
           const newParams = {
             ...params,
             error: "AuthError",
@@ -107,37 +113,6 @@ for (const pair of form.entries()) {
   {
     path: "/login",
     element: <Login />,
-    action: async ({ params, request }) => {
-      return await fetch(request.url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "x-www-form-urlencoded",
-        },
-        body: await request.formData(),
-      })
-        .then(async (res) => {
-          return res.json();
-        })
-        .then(async (json) => {
-          sessionStorage.setItem("token", json.token);
-          if (params.then) return Response.redirect(params.then);
-          else return Response.redirect("/write");
-        })
-        .catch(() => {
-          sessionStorage.removeItem("token");
-          console.error('')
-          const newParams = {
-            ...params,
-            error: "AuthError",
-          };
-          return Response.redirect(
-            "/register?" +
-              Object.entries(newParams)
-                .map((kv) => kv.map(encodeURIComponent).join("="))
-                .join("&")
-          );
-        });
-    },
     loader: ({ params }) => {
       if (sessionStorage.getItem("token")) {
         if (params.then) return Response.redirect(params.then);
@@ -148,12 +123,38 @@ for (const pair of form.entries()) {
   },
   {
     path: "/write",
-    element: <WritePage />,
-    loader: ({}) => {
+    loader: async ({ params }) => {
+      console.log("initial load", params);
       if (!sessionStorage.getItem("token")) {
         return Response.redirect("/register?then=/write");
+      } else {
+        const journalId = Math.round(Math.random() * 1000000);
+        const entry = await createJournalEntryRequest({
+          title: `Journal #${journalId}`,
+          entry: "",
+        });
+        return Response.redirect(`/write/${entry.id}`);
       }
-      return {};
+    },
+  },
+  {
+    path: "/write/:entryId",
+    element: <WritePage />,
+    loader: async ({ params }) => {
+      const entryId = params.entryId || "";
+      console.log('checking refresh');
+      if (!entryId) throw Error("no entry available");
+      try {
+        const entry = await fetchJournalEntryRequest(entryId);
+        return {
+          entry,
+        };
+      } catch (e) {
+        if (e instanceof TokenError) {
+          sessionStorage.removeItem("token");
+          return Response.redirect(`/login?then=/write/${entryId}`);
+        }
+      }
     },
   },
 ]);

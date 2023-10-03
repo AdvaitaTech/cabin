@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@advaita-tech/writer": "^0.0.1",
+    "@advaita-tech/writer": "^0.0.3",
     "autoprefixer": "^10.4.16",
     "clsx": "^2.0.0",
     "postcss": "^8.4.31",
