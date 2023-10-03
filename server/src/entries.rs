@@ -56,8 +56,7 @@ async fn create(
     ) {
         Ok(v) => Ok(v),
         Err(_e) => Err(ApiError::Unauthorized),
-    }
-    .unwrap();
+    }?;
     let email = token.claims.sub;
     let client: Client = pool.get().await.map_err(ApiError::DbError)?;
     println!(
@@ -74,8 +73,7 @@ async fn create(
             println!("Error in db call: {:?}", err);
             Err(ApiError::InternalError)
         }
-    }
-    .unwrap();
+    }?;
     if entries.len() == 0 {
         Err(ApiError::BadClientData)
     } else {
@@ -101,8 +99,7 @@ async fn list(auth: BearerAuth, pool: Data<Pool>) -> Result<HttpResponse, ApiErr
     ) {
         Ok(v) => Ok(v),
         Err(_e) => Err(ApiError::Unauthorized),
-    }
-    .unwrap();
+    }?;
     let email = token.claims.sub;
     let select =
         "SELECT id, title, entry FROM journals WHERE author=(SELECT id from USERS WHERE email=$1);";
@@ -112,8 +109,7 @@ async fn list(auth: BearerAuth, pool: Data<Pool>) -> Result<HttpResponse, ApiErr
             println!("Error in db call: {:?}", err);
             Err(ApiError::InternalError)
         }
-    }
-    .unwrap();
+    }?;
     let journals: Vec<JournalEntry> = rows
         .iter()
         .map(|r| JournalEntry {
@@ -164,6 +160,7 @@ async fn fetch(
         Ok(HttpResponse::Ok().json(journals.get(0)))
     }
 }
+
 async fn save(
     path: Path<i64>,
     auth: BearerAuth,
@@ -180,8 +177,7 @@ async fn save(
     ) {
         Ok(v) => Ok(v),
         Err(_e) => Err(ApiError::Unauthorized),
-    }
-    .unwrap();
+    }?;
     let email = token.claims.sub;
     let mut update = String::from("UPDATE journals SET ");
     let mut args: Vec<&(dyn ToSql + Sync)> = Vec::new();
@@ -214,8 +210,7 @@ async fn save(
             println!("Error in db call: {:?}", err);
             Err(ApiError::InternalError)
         }
-    }
-    .unwrap();
+    }?;
     Ok(HttpResponse::Ok().json({}))
 }
 
