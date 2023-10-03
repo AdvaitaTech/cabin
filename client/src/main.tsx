@@ -3,11 +3,12 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./styles/main.scss";
 import Login from "./Login";
-import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { RouterProvider, createBrowserRouter, defer } from "react-router-dom";
 import Register from "./Register";
 import WritePage from "./Writer";
 import {
   createJournalEntryRequest,
+  fetchAllJournalEntriesRequest,
   fetchJournalEntryRequest,
 } from "./utils/network";
 import { TokenError } from "./utils/errors";
@@ -145,9 +146,11 @@ const router = createBrowserRouter([
       console.log('checking refresh');
       if (!entryId) throw Error("no entry available");
       try {
-        const entry = await fetchJournalEntryRequest(entryId);
+        const entry = fetchJournalEntryRequest(entryId);
+        const entries = fetchAllJournalEntriesRequest();
         return {
-          entry,
+          entry: await entry,
+          entries: await entries
         };
       } catch (e) {
         if (e instanceof TokenError) {

@@ -17,4 +17,8 @@ html, body, #root {
   font-family: 'Cabin', sans-serif;
 }
 
+svg {
+  display: inline;
+}
+
 @import './editor-styles.scss';

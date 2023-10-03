@@ -87,6 +87,8 @@ export default {
         "3xl": "50px",
         "2xl": "30px",
         xl: "25px",
+        lg: "20px",
+        md: '14px',
         sm: '12px',
         xs: '10px',
       },

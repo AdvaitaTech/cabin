@@ -12,6 +12,7 @@
   "dependencies": {
     "@advaita-tech/writer": "^0.0.3",
     "autoprefixer": "^10.4.16",
+    "bootstrap-icons": "^1.11.1",
     "clsx": "^2.0.0",
     "postcss": "^8.4.31",
     "react": "^18.2.0",

@@ -91,7 +91,7 @@ export const fetchAllJournalEntriesRequest = async (): Promise<
 > => {
   const token = sessionStorage.getItem("token");
   if (!token) throw new TokenError("Token not available");
-  return await fetch(`/api/entries`, {
+  return await fetch(`/api/entries/`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -107,6 +107,7 @@ export const fetchAllJournalEntriesRequest = async (): Promise<
       }
     })
     .then(async (res) => res.json())
+    .then(json => json.entries)
     .catch((err) => {
       console.error("caught network error", err);
       throw err;
