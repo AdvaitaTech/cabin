@@ -142,7 +142,7 @@ mod journal_tests {
     };
     use server::{
         configure_api,
-        entries::{AddEntryResponse, ListEntriesResponse},
+        entries::{AddEntryResponse, JournalEntry, ListEntriesResponse},
     };
 
     #[test_context(MyContext)]
@@ -213,5 +213,48 @@ mod journal_tests {
         assert_eq!(resp.entries.len(), 1);
         assert_eq!(resp.entries[0].title, "Second entry".to_string());
         assert_eq!(resp.entries[0].content, "Wrote something else".to_string());
+    }
+
+    #[test_context(MyContext)]
+    #[actix_web::test]
+    async fn get_entry(_cts: &MyContext) {
+        let app = init_service(App::new().configure(configure_api)).await;
+        let req = TestRequest::post()
+            .uri("/api/users/login")
+            .set_form(HashMap::from([
+                ("email", "testing103@example.com"),
+                ("password", "testing@123"),
+            ]))
+            .to_request();
+        let token: SignUpResponse = call_and_read_body_json(&app, req).await;
+        let req = TestRequest::post()
+            .uri("/api/entries/")
+            .insert_header(("Authorization", format!("Bearer {}", token.session)))
+            .set_json(HashMap::from([
+                ("title", "Entry"),
+                ("content", "Wrote something"),
+            ]))
+            .to_request();
+        let entry: AddEntryResponse = call_and_read_body_json(&app, req).await;
+        let req = TestRequest::get()
+            .uri(&format!("/api/entries/{}", entry.id)[..])
+            .insert_header(("Authorization", format!("Bearer {}", token.session)))
+            .to_request();
+        let journal: JournalEntry = call_and_read_body_json(&app, req).await;
+        assert_eq!(journal.id, entry.id);
+        assert_eq!(journal.title, entry.title);
+        assert_eq!(journal.content, entry.content);
+        let req = TestRequest::get()
+            .uri(&format!("/api/entries/{}", entry.id)[..])
+            .to_request();
+        let res = call_service(&app, req).await;
+        println!("got req {:?}", res.status());
+        assert!(res.status().is_client_error());
+        let req = TestRequest::get()
+            .uri(&format!("/api/entries/{}", 2000)[..])
+            .insert_header(("Authorization", format!("Bearer {}", token.session)))
+            .to_request();
+        let res = call_service(&app, req).await;
+        assert!(res.status().is_client_error());
     }
 }

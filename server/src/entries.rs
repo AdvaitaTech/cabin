@@ -125,6 +125,45 @@ async fn list(auth: BearerAuth, pool: Data<Pool>) -> Result<HttpResponse, ApiErr
     Ok(HttpResponse::Ok().json(ListEntriesResponse { entries: journals }))
 }
 
+async fn fetch(
+    path: Path<i64>,
+    auth: BearerAuth,
+    pool: Data<Pool>,
+) -> Result<HttpResponse, ApiError> {
+    let entry_id = path.into_inner();
+    let client: Client = pool.get().await.map_err(ApiError::DbError)?;
+    let secret = env::var("SECRET").unwrap();
+    let token = match decode::<Claims>(
+        &auth.token(),
+        &DecodingKey::from_secret(&secret.as_ref()),
+        &Validation::default(),
+    ) {
+        Ok(v) => Ok(v),
+        Err(_e) => Err(ApiError::Unauthorized),
+    }?;
+    let email = token.claims.sub;
+    let select = "SELECT id, title, entry FROM journals WHERE id=$1 and author=(SELECT id FROM users WHERE email=$2);";
+    let rows = match client.query(select, &[&entry_id, &email]).await {
+        Ok(v) => Ok(v),
+        Err(err) => {
+            println!("Error in db call: {:?}", err);
+            Err(ApiError::Unauthorized)
+        }
+    }?;
+    let journals: Vec<JournalEntry> = rows
+        .iter()
+        .map(|r| JournalEntry {
+            id: r.get::<usize, i64>(0).to_string(),
+            title: r.get(1),
+            content: r.get(2),
+        })
+        .collect();
+    if journals.len() != 1 {
+        Err(ApiError::BadClientData)
+    } else {
+        Ok(HttpResponse::Ok().json(journals.get(0)))
+    }
+}
 async fn save(
     path: Path<i64>,
     auth: BearerAuth,
@@ -189,5 +228,6 @@ pub mod routes {
             .route("/", web::post().to(create))
             .route("/", web::get().to(list))
             .route("/{id}", web::put().to(save))
+            .route("/{id}", web::get().to(fetch))
     }
 }
