@@ -102,7 +102,7 @@ async fn list(auth: BearerAuth, pool: Data<Pool>) -> Result<HttpResponse, ApiErr
     }?;
     let email = token.claims.sub;
     let select =
-        "SELECT id, title, entry FROM journals WHERE author=(SELECT id from USERS WHERE email=$1);";
+        "SELECT id, title, entry FROM journals WHERE author=(SELECT id from USERS WHERE email=$1) order by id desc;";
     let rows = match client.query(select, &[&email]).await {
         Ok(v) => Ok(v),
         Err(err) => {
