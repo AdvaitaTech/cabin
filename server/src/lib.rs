@@ -62,7 +62,7 @@ pub fn configure_api(cfg: &mut ServiceConfig) {
             .service(entries::routes::get())
             .route("", web::get().to(render_index))
             .route("/", web::get().to(render_index))
-            .service(Files::new("/public", "."));
+            .service(Files::new("/dist", "."));
     } else {
         cfg.app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(Client::default()))
@@ -81,7 +81,7 @@ pub fn configure_api(cfg: &mut ServiceConfig) {
 use ::config::Config;
 
 async fn render_index() -> Result<NamedFile, std::io::Error> {
-    Ok(NamedFile::open("public/index.html")?)
+    Ok(NamedFile::open("dist/index.html")?)
 }
 
 async fn proxy_frontend(
