@@ -1,4 +1,4 @@
-use actix_files::NamedFile;
+use actix_files::{Files, NamedFile};
 use actix_web::{
     error,
     web::{self, ServiceConfig},
@@ -50,17 +50,32 @@ pub fn create_db_pool() -> deadpool_postgres::Pool {
 pub fn configure_api(cfg: &mut ServiceConfig) {
     load_environment();
     let pool = create_db_pool();
-    cfg.app_data(web::Data::new(pool.clone()))
-        .app_data(web::Data::new(Client::default()))
-        .app_data(web::FormConfig::default().error_handler(|_err, _req| {
-            println!("got error {:#}", _err);
-            ApiError::BadClientData.into()
-        }))
-        .service(users::routes::get())
-        .service(entries::routes::get())
-        .route("", web::get().to(render_index))
-        .route("/", web::get().to(render_index))
-        .route("/{url:.*}", web::get().to(proxy_frontend));
+    let environment = env::var("RUST_ENV").unwrap_or_else(|_| "".to_string());
+    if environment == "production" {
+        cfg.app_data(web::Data::new(pool.clone()))
+            .app_data(web::Data::new(Client::default()))
+            .app_data(web::FormConfig::default().error_handler(|_err, _req| {
+                println!("got error {:#}", _err);
+                ApiError::BadClientData.into()
+            }))
+            .service(users::routes::get())
+            .service(entries::routes::get())
+            .route("", web::get().to(render_index))
+            .route("/", web::get().to(render_index))
+            .service(Files::new("/public", "."));
+    } else {
+        cfg.app_data(web::Data::new(pool.clone()))
+            .app_data(web::Data::new(Client::default()))
+            .app_data(web::FormConfig::default().error_handler(|_err, _req| {
+                println!("got error {:#}", _err);
+                ApiError::BadClientData.into()
+            }))
+            .service(users::routes::get())
+            .service(entries::routes::get())
+            .route("", web::get().to(proxy_frontend))
+            .route("/", web::get().to(proxy_frontend))
+            .route("/{url:.*}", web::get().to(proxy_frontend));
+    }
 }
 
 use ::config::Config;

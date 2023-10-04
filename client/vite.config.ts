@@ -6,11 +6,5 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173
-  },
-  build: {
-    manifest: true,
-    rollupOptions: {
-      input: 'src/main.tsx'
-    }
   }
 })
