@@ -1,5 +1,11 @@
 import { Writer, AdvaitaWriterRef } from "@advaita-tech/writer";
-import { useEffect, useLayoutEffect, useRef, MutableRefObject } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  MutableRefObject,
+  useState,
+} from "react";
 import {
   Link,
   ScrollRestoration,
@@ -79,9 +85,11 @@ const EntryEditor = ({
 const EntryList = ({
   entries,
   entryId,
+  setEntryId,
 }: {
   entries: JournalEntry[];
   entryId: string | undefined;
+  setEntryId: (id: string) => void;
 }) => {
   return (
     <div className="overflow-auto">
@@ -89,9 +97,9 @@ const EntryList = ({
         const summary = fetchSummary(content);
         return (
           <Link
-            key={id}
             to={`/write/${id}`}
-            reloadDocument
+            key={id}
+            onClick={() => setEntryId(id)}
             className={clsx(
               "border-b border-primary-200 px-5 py-2 cursor-pointer block",
               {
@@ -119,7 +127,8 @@ const EntryList = ({
 };
 
 const WritePage = () => {
-  const { entryId } = useParams();
+  const { entryId: entryParam } = useParams();
+  const [entryId, setEntryId] = useState(entryParam);
   const {
     entry,
     error: entryError,
@@ -128,12 +137,10 @@ const WritePage = () => {
   const { entries, error, isLoading } = useAllJournalEntries();
   const dirty = useRef(false);
   const editorRef = useRef<AdvaitaWriterRef>();
-  console.log("entry err", entryError);
 
   const setDirty = (value: boolean) => {
     dirty.current = value;
     const elem = document.getElementById("save-button");
-    console.log("setting dirty", value, elem);
     if (value) elem?.removeAttribute("disabled");
     else elem?.setAttribute("disabled", "true");
   };
@@ -199,7 +206,11 @@ const WritePage = () => {
             {error.message}
           </div>
         ) : entries ? (
-          <EntryList entries={entries} entryId={entryId} />
+          <EntryList
+            entries={entries}
+            entryId={entryId}
+            setEntryId={setEntryId}
+          />
         ) : null}
       </div>
       <div className="flex-1 pt-5 px-[150px] flex justify-center overflow-y-scroll bg-white-500">
@@ -213,6 +224,7 @@ const WritePage = () => {
           </div>
         ) : entry ? (
           <EntryEditor
+            key={entryId}
             entry={entry}
             editorRef={editorRef}
             setDirty={setDirty}

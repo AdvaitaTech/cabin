@@ -12,11 +12,13 @@ import {
   fetchJournalEntryRequest,
 } from "./utils/network";
 import { TokenError } from "./utils/errors";
+import ErrorPage from "./ErrorPage";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Register />,
+    errorElement: <ErrorPage />,
     loader: ({}) => {
       if (sessionStorage.getItem("token")) {
         return Response.redirect("/write");
