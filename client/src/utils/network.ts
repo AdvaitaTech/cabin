@@ -1,4 +1,6 @@
+import useSWR from "swr";
 import { AuthError, NetworkError, TokenError } from "./errors";
+import { NavigateFunction, useNavigate } from "react-router-dom";
 
 export interface JournalEntry {
   id: string;
@@ -107,9 +109,64 @@ export const fetchAllJournalEntriesRequest = async (): Promise<
       }
     })
     .then(async (res) => res.json())
-    .then(json => json.entries)
+    .then((json) => json.entries)
     .catch((err) => {
       console.error("caught network error", err);
       throw err;
     });
+};
+
+const getFetcher = <T>(navigate: NavigateFunction, errorHandler?: (e: Error) => void) => {
+  return async (url: string) => {
+    const token = sessionStorage.getItem("token");
+    return (
+      fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json() as T)
+        .catch((e) => {
+          console.log('fetch error', e);
+          if (e instanceof TokenError) {
+            sessionStorage.removeItem("token");
+            navigate(`/?then=${window.location.pathname}`);
+          }
+          if (errorHandler)
+            errorHandler(e);
+        })
+    );
+  };
+};
+
+export const useJournalEntry = (id: string) => {
+  const navigate = useNavigate();
+  const { data, error, isLoading } = useSWR(
+    `/api/entries/${id}`,
+    getFetcher<JournalEntry>(navigate, () => {
+      throw new NetworkError("Error fetching entry. Try creating a new one?");
+    })
+  );
+
+  return {
+    entry: data,
+    error,
+    isLoading,
+  };
+};
+
+export const useAllJournalEntries = () => {
+  const navigate = useNavigate();
+  const { data, error, isLoading } = useSWR(
+    "/api/entries/",
+    getFetcher<{ entries: JournalEntry[] }>(navigate, () => {
+      throw new NetworkError("Could not fetch Journal Entries")
+    })
+  );
+
+  return {
+    entries: data?.entries || [],
+    error,
+    isLoading,
+  };
 };

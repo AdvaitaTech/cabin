@@ -140,25 +140,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/write/:entryId",
-    element: <WritePage />,
-    loader: async ({ params }) => {
-      const entryId = params.entryId || "";
-      console.log('checking refresh');
-      if (!entryId) throw Error("no entry available");
-      try {
-        const entry = fetchJournalEntryRequest(entryId);
-        const entries = fetchAllJournalEntriesRequest();
-        return {
-          entry: await entry,
-          entries: await entries
-        };
-      } catch (e) {
-        if (e instanceof TokenError) {
-          sessionStorage.removeItem("token");
-          return Response.redirect(`/login?then=/write/${entryId}`);
-        }
-      }
-    },
+    element: <WritePage />
   },
 ]);
 

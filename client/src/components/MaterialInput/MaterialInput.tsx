@@ -37,7 +37,7 @@ const MaterialInput = ({
       </legend>
       <label
         className={clsx(
-          "transition-all duration-200 absolute top-0 left-[12px] pointer-events-none",
+          "transition-all duration-200 absolute top-[3px] left-[12px] pointer-events-none",
           {
             "absolute text-md text-white-700 translate-y-[5px] translate-x-[-4px]":
               mode === "",
