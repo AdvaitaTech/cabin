@@ -130,7 +130,7 @@ const getFetcher = <T>(navigate: NavigateFunction, errorHandler?: (e: Error) => 
           console.log('fetch error', e);
           if (e instanceof TokenError) {
             sessionStorage.removeItem("token");
-            navigate(`/?then=${window.location.pathname}`);
+            navigate(`/login?then=${window.location.pathname}&error=AuthError`);
           }
           if (errorHandler)
             errorHandler(e);

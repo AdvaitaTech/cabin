@@ -126,17 +126,26 @@ const router = createBrowserRouter([
         return Response.redirect("/register?then=/write");
       } else {
         const journalId = Math.round(Math.random() * 1000000);
+        let redirectPath;
         const entry = await createJournalEntryRequest({
           title: `Journal #${journalId}`,
           entry: "",
+        }).catch((e) => {
+          console.log("caught");
+          if (e instanceof TokenError) {
+            sessionStorage.removeItem("token");
+            redirectPath = "/login?error=AuthError";
+          }
         });
-        return Response.redirect(`/write/${entry.id}`);
+        console.log("return");
+        if (redirectPath) return Response.redirect(redirectPath);
+        else return Response.redirect(`/write/${entry.id}`);
       }
     },
   },
   {
     path: "/write/:entryId",
-    element: <WritePage />
+    element: <WritePage />,
   },
 ]);
 
