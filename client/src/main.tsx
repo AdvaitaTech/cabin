@@ -41,11 +41,6 @@ const router = createBrowserRouter([
     path: "/api/users/sign_up",
     action: async ({ params, request }) => {
       const form = await request.formData();
-      console.log("method", request.url, request, form);
-
-      for (const pair of form.entries()) {
-        console.log(`${pair[0]}, ${pair[1]}`);
-      }
 
       return await fetch(request.url, {
         method: "POST",
@@ -92,7 +87,6 @@ const router = createBrowserRouter([
           return res.json();
         })
         .then(async (json) => {
-          console.log("token", json);
           sessionStorage.setItem("token", json.session);
           if (params.then) return Response.redirect(params.then);
           else return Response.redirect("/write");

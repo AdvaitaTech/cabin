@@ -60,9 +60,10 @@ pub fn configure_api(cfg: &mut ServiceConfig) {
             }))
             .service(users::routes::get())
             .service(entries::routes::get())
+            .service(Files::new("/assets", "dist/assets"))
             .route("", web::get().to(render_index))
             .route("/", web::get().to(render_index))
-            .service(Files::new("/", "dist"));
+            .route("/{url:.*}", web::get().to(render_index));
     } else {
         cfg.app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(Client::default()))

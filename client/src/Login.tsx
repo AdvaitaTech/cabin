@@ -1,4 +1,5 @@
 import { useState } from "react";
+import WritersCabin from './assets/writers-cabin.png';
 import MaterialInput from "./components/MaterialInput/MaterialInput";
 import { Form } from "react-router-dom";
 
@@ -25,7 +26,7 @@ const Login = () => {
           </h3>
         </div>
         <img
-          src="/writers-cabin.png"
+          src={WritersCabin}
           className="object-cover w-full h-full absolute opacity-70"
         />
       </div>

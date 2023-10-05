@@ -1,5 +1,6 @@
 import { useState } from "react";
 import MaterialInput from "./components/MaterialInput/MaterialInput";
+import WritersCabin from './assets/writers-cabin.png';
 import { Form, useNavigate } from "react-router-dom";
 
 const Register = () => {
@@ -29,7 +30,7 @@ const Register = () => {
           </h3>
         </div>
         <img
-          src="/writers-cabin.png"
+          src={WritersCabin}
           className="object-cover w-full h-full absolute opacity-70"
         />
       </div>
