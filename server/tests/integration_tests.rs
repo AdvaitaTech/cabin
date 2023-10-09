@@ -43,6 +43,21 @@ mod tests {
 
     #[test_context(MyContext)]
     #[actix_web::test]
+    async fn login_failure(_ctx: &mut MyContext) {
+        let app = test::init_service(App::new().configure(configure_api)).await;
+        let req = test::TestRequest::post()
+            .uri("/api/users/login")
+            .set_form(HashMap::from([
+                ("email", "testingfail@example.com"),
+                ("password", "testing123"),
+            ]))
+            .to_request();
+        let resp = test::call_service(&app, req).await;
+        assert!(resp.status().is_client_error());
+    }
+
+    #[test_context(MyContext)]
+    #[actix_web::test]
     async fn sign_up_success(_ctx: &mut MyContext) {
         let app = test::init_service(App::new().configure(configure_api)).await;
         let req = test::TestRequest::post()
