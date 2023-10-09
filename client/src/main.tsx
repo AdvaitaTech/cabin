@@ -11,7 +11,7 @@ import {
   fetchAllJournalEntriesRequest,
   fetchJournalEntryRequest,
 } from "./utils/network";
-import { TokenError } from "./utils/errors";
+import { AuthError, TokenError } from "./utils/errors";
 import ErrorPage from "./ErrorPage";
 
 const router = createBrowserRouter([
@@ -84,6 +84,21 @@ const router = createBrowserRouter([
         body: new URLSearchParams((await request.formData()) as any),
       })
         .then(async (res) => {
+          if (res.status === 400) {
+            throw new AuthError("no such user");
+          } else if (res.status === 401) {
+            // show incorrect password message
+            const newParams = {
+              ...params,
+              error: "AuthError",
+            };
+            return Response.redirect(
+              "/login?" +
+                Object.entries(newParams)
+                  .map((kv) => kv.map(encodeURIComponent).join("="))
+                  .join("&")
+            );
+          }
           return res.json();
         })
         .then(async (json) => {

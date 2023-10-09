@@ -171,9 +171,10 @@ const WritePage = () => {
     };
 
     return () => {
+      window.onbeforeunload = null;
       clearInterval(interval);
     };
-  }, []);
+  }, [entryId]);
 
   useLayoutEffect(() => {
     setDirty(false);
