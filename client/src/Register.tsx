@@ -11,7 +11,7 @@ const Register = () => {
 
   return (
     <div className="flex h-full w-full">
-      <div className="flex-1 flex flex-col items-center justify-center relative text-white-500">
+      <div className="flex-1 flex flex-col items-center justify-start md:justify-center relative text-white-500">
         <div className="z-10 flex flex-col items-center justify-center">
           <h1
             className="block font-extrabold text-3xl mb-5"
@@ -22,7 +22,7 @@ const Register = () => {
             Cabin
           </h1>
           <h3
-            className="block text-2xl font-semibold"
+            className="block text-2xl font-semibold text-center"
             style={{
               textShadow: "1px 1px black",
             }}
@@ -35,13 +35,16 @@ const Register = () => {
           className="object-cover w-full h-full absolute opacity-70"
         />
       </div>
-      <div className="flex-1 flex items-center justify-center bg-background-200">
+      <div
+        className="flex-1 flex items-center justify-center md:bg-background-200 md:relative absolute top-[200px] 
+        bg-transparent left-[10px] right-[10px] rounded-lg md:rounded-none md:top-0 md:left-0 md:right-0"
+      >
         <Form
           className="flex flex-col w-[500px] border-primary-200 border rounded-lg shadow-secondary-400 bg-white-500 py-10 px-5"
           method="POST"
           action="/api/users/sign_up"
         >
-          <h2 className="mb mx-auto text-xl font-bold">
+          <h2 className="mb mx-auto text-lg md:text-xl font-bold">
             Sign up for the free beta
           </h2>
           <h4 className="mx-auto text-md text-white-800">
@@ -81,7 +84,7 @@ const Register = () => {
           >
             Register
           </button>
-          <div className="text-sm text-white-800 mt-20 mx-auto">
+          <div className="text-sm text-white-800 mt-[60px] mx-auto">
             <span>Already have an account? </span>
             <a href="/login" className="text-md text-primary-500 font-semibold">
               Login
