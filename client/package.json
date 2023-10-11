@@ -1,19 +1,20 @@
 {
   "name": "client",
-  "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && rm -r ../server/dist && cp -r dist ../server",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "e2e": "cypress open"
   },
   "dependencies": {
-    "@advaita-tech/writer": "^0.0.3",
-    "autoprefixer": "^10.4.16",
+    "@advaita-tech/writer": "0.0.6",
+    "@types/cypress": "^1.1.3",
     "bootstrap-icons": "^1.11.1",
     "clsx": "^2.0.0",
+    "cypress-vite": "^1.4.2",
     "postcss": "^8.4.31",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -32,6 +33,8 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
     "typescript": "^5.0.2",
-    "vite": "^4.4.5"
+    "vite": "^4.4.5",
+    "cypress": "^13.3.0",
+    "autoprefixer": "^10.4.16"
   }
 }

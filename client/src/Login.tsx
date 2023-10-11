@@ -1,9 +1,10 @@
 import { useState } from "react";
-import WritersCabin from './assets/writers-cabin.png';
+import WritersCabin from "./assets/writers-cabin.png";
 import MaterialInput from "./components/MaterialInput/MaterialInput";
-import { Form } from "react-router-dom";
+import { Form, useSearchParams } from "react-router-dom";
 
 const Login = () => {
+  const [searchParams] = useSearchParams();
   return (
     <div className="flex h-full w-full">
       <div className="flex-1 flex flex-col items-center justify-center relative text-white-500">
@@ -31,13 +32,40 @@ const Login = () => {
         />
       </div>
       <div className="flex-1 flex items-center justify-center bg-background-200">
-        <Form className="flex flex-col w-[500px] border-primary-200 border rounded-lg shadow-secondary-400 bg-white-500 py-10 px-5" method="POST" action="/api/users/login">
+        <Form
+          className="flex flex-col w-[500px] border-primary-200 border rounded-lg shadow-secondary-400 bg-white-500 py-10 px-5"
+          method="POST"
+          action="/api/users/login"
+        >
           <h2 className="mb mx-auto text-xl font-bold">Start writing</h2>
-          <h4 className="mb-10 mx-auto text-md text-white-800">
+          <h4 className="mx-auto text-md text-white-800">
             By entering your details
           </h4>
-          <MaterialInput name="email" title="Email" type="text" />
-          <MaterialInput name="password" title="Password" type="password" className="mt-2" />
+          {searchParams.get("error") &&
+          searchParams.get("error") === "AuthError" ? (
+            <h4 className="mt-2 text-sm text-red-500 text-center">
+              Incorrect password. Try again
+            </h4>
+          ) : null}
+          {searchParams.get("error") &&
+          searchParams.get("error") === "BadDataError" ? (
+            <h4 className="mt-2 text-sm text-red-500 text-center">
+              User does not exist. Try signing up instead.
+            </h4>
+          ) : null}
+          {searchParams.get("error") &&
+          searchParams.get("error") === "TokenError" ? (
+            <h4 className="mt-2 text-sm text-red-500 text-center">
+              Session expired. Please login again
+            </h4>
+          ) : null}
+          <MaterialInput name="email" title="Email" type="text" className="mt-10"/>
+          <MaterialInput
+            name="password"
+            title="Password"
+            type="password"
+            className="mt-2"
+          />
           <button className="w-full mt-10 py-3 bg-primary-500 text-white-500 font-semibold rounded-lg disabled:bg-white-700">
             Login
           </button>

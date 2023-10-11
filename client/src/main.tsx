@@ -6,12 +6,8 @@ import Login from "./Login";
 import { RouterProvider, createBrowserRouter, defer } from "react-router-dom";
 import Register from "./Register";
 import WritePage from "./Writer";
-import {
-  createJournalEntryRequest,
-  fetchAllJournalEntriesRequest,
-  fetchJournalEntryRequest,
-} from "./utils/network";
-import { AuthError, TokenError } from "./utils/errors";
+import { createJournalEntryRequest } from "./utils/network";
+import { AuthError, BadDataError, TokenError } from "./utils/errors";
 import ErrorPage from "./ErrorPage";
 
 const router = createBrowserRouter([
@@ -22,8 +18,7 @@ const router = createBrowserRouter([
     loader: ({}) => {
       if (sessionStorage.getItem("token")) {
         return Response.redirect("/write");
-      }
-      return {};
+      } else return Response.redirect("/register");
     },
   },
   {
@@ -85,19 +80,10 @@ const router = createBrowserRouter([
       })
         .then(async (res) => {
           if (res.status === 400) {
-            throw new AuthError("no such user");
+            throw new BadDataError("no such user");
           } else if (res.status === 401) {
             // show incorrect password message
-            const newParams = {
-              ...params,
-              error: "AuthError",
-            };
-            return Response.redirect(
-              "/login?" +
-                Object.entries(newParams)
-                  .map((kv) => kv.map(encodeURIComponent).join("="))
-                  .join("&")
-            );
+            throw new AuthError('incorrect password');
           }
           return res.json();
         })
@@ -106,15 +92,16 @@ const router = createBrowserRouter([
           if (params.then) return Response.redirect(params.then);
           else return Response.redirect("/write");
         })
-        .catch(() => {
+        .catch((e) => {
           sessionStorage.removeItem("token");
           console.error("");
+          let error = e.name;
           const newParams = {
             ...params,
-            error: "AuthError",
+            error
           };
           return Response.redirect(
-            "/register?" +
+            "/login?" +
               Object.entries(newParams)
                 .map((kv) => kv.map(encodeURIComponent).join("="))
                 .join("&")
@@ -138,7 +125,7 @@ const router = createBrowserRouter([
     loader: async ({ params }) => {
       console.log("initial load", params);
       if (!sessionStorage.getItem("token")) {
-        return Response.redirect("/register?then=/write");
+        return Response.redirect("/login?then=/write&error=TokenError");
       } else {
         const journalId = Math.round(Math.random() * 1000000);
         let redirectPath;
@@ -149,7 +136,7 @@ const router = createBrowserRouter([
           console.log("caught");
           if (e instanceof TokenError) {
             sessionStorage.removeItem("token");
-            redirectPath = "/login?error=AuthError";
+            redirectPath = "/login?error=TokenError";
           }
         });
         console.log("return");

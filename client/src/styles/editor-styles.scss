@@ -40,7 +40,7 @@
       color: var(--adv-tertiary);
 
       &.active {
-        color: var(--adv-primary);
+        color: var(--primary-500);
       }
 
       svg {
@@ -167,7 +167,7 @@
 
   .insert-link-box {
     width: 300px;
-    flex-direction: column;
+    flex-direction: row;
     display: flex;
     padding: 5px;
     background: white;
@@ -175,7 +175,7 @@
 
     input {
       font-size: 14px;
-      color: var(--adv-primary);
+      flex: 1;
       border: 0;
       outline: none;
       box-shadow: none !important;
@@ -200,7 +200,7 @@
       cursor: pointer;
 
       &.active {
-        color: var(--adv-primary);
+        color: var(--primary-500);
       }
 
       .menu-wrapper {
@@ -209,7 +209,7 @@
         border-radius: 5px;
 
         &:hover {
-          background: var(--adv-light);
+          background: var(--background-500);
         }
 
         .menu-title {

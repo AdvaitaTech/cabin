@@ -1,9 +1,10 @@
 import { useState } from "react";
 import MaterialInput from "./components/MaterialInput/MaterialInput";
-import WritersCabin from './assets/writers-cabin.png';
-import { Form, useNavigate } from "react-router-dom";
+import WritersCabin from "./assets/writers-cabin.png";
+import { Form, useNavigate, useSearchParams } from "react-router-dom";
 
 const Register = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirm, setConfirm] = useState<string>("");
@@ -43,13 +44,20 @@ const Register = () => {
           <h2 className="mb mx-auto text-xl font-bold">
             Sign up for the free beta
           </h2>
-          <h4 className="mb-10 mx-auto text-md text-white-800">
+          <h4 className="mx-auto text-md text-white-800">
             To start journaling
           </h4>
+          {searchParams.get("error") &&
+          searchParams.get("error") === "AuthError" ? (
+            <h4 className="mt-2 text-sm text-red-500 text-center">
+              User already exists. Try logging in instead.
+            </h4>
+          ) : null}
           <MaterialInput
             name="email"
             title="Email"
             type="text"
+            className="mt-10"
             onChange={(e) => setEmail(e.target.value)}
           />
           <MaterialInput

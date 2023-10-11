@@ -18,6 +18,13 @@ export class AuthError extends AppError {
   }
 }
 
+export class BadDataError extends AppError {
+  constructor(message: string) {
+    super(message);
+    this.name = 'BadDataError';
+  }
+}
+
 export class NetworkError extends AppError {
   constructor(message: string) {
     super(message);

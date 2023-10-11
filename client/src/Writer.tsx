@@ -71,6 +71,7 @@ const EntryEditor = ({
       </div>
       <Writer
         setEditorRef={(ref: AdvaitaWriterRef) => (editorRef.current = ref)}
+        autofocus="end"
         placeholder="Your thoughts..."
         content={entry.content}
         styles="editor"
