@@ -41,7 +41,7 @@ async fn sign_up(
         let sql = "INSERT INTO users(email, password) VALUES ($1, $2);";
         let claims = Claims {
             sub: form.email.clone(),
-            exp: get_current_timestamp() + 43200,
+            exp: get_current_timestamp() + 2592000,
         };
         let secret = env::var("SECRET").unwrap();
         let token = encode(
@@ -87,7 +87,7 @@ async fn login(
                 } else {
                     let claims = Claims {
                         sub: form.email.clone(),
-                        exp: get_current_timestamp() + 43200,
+                        exp: get_current_timestamp() + 2592000,
                     };
                     let secret = env::var("SECRET").unwrap();
                     let token = encode(
