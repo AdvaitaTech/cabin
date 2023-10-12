@@ -20,6 +20,7 @@ import EntryLoading from "./components/skeletons/EntryLoading";
 import ListLoadingSkeleton from "./components/skeletons/ListLoading";
 import ListIcon from "./icons/ListIcon";
 import CloseIcon from "./icons/CloseIcon";
+import ResizeableTextarea from "./components/ResizeableTextarea";
 
 const fetchSummary = (html: string) => {
   const parser = new DOMParser();
@@ -38,21 +39,24 @@ const EntryEditor = ({
   editorRef: MutableRefObject<AdvaitaWriterRef | undefined>;
   setDirty: (value: boolean) => void;
 }) => {
+  console.log("defulat", entry);
   return (
     <div className="max-w-xl md:max-w-[800px] w-full">
       <div className="flex mb-5 w-full items-center">
-        <textarea
-          id="journal-title"
-          className="text-xl sm:text-2xl md:text-3xl placeholder:text-white-700 outline-none bg-transparent flex-1"
-          style={{
-            width: "calc(100% - 30px)",
-          }}
-          maxLength={50}
-          defaultValue={entry.title}
-          onChange={() => {
-            setDirty(true);
-          }}
-        />
+        <div className="relative flex-1">
+          <ResizeableTextarea
+            id="journal-title"
+            className="text-xl md:text-2xl xl:text-3xl placeholder:text-white-700 outline-none bg-transparent"
+            style={{
+              width: "calc(100% - 30px)",
+            }}
+            maxLength={50}
+            defaultValue={entry.title}
+            onChange={() => {
+              setDirty(true);
+            }}
+          />
+        </div>
         <button
           className="text-2xl text-primary-500 disabled:text-primary-200 w-[30px]"
           id="save-button"
