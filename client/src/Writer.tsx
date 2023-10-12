@@ -41,14 +41,14 @@ const EntryEditor = ({
   return (
     <div className="max-w-xl md:max-w-[800px] w-full">
       <div className="flex mb-5 w-full items-center">
-        <input
+        <textarea
           id="journal-title"
           className="text-xl sm:text-2xl md:text-3xl placeholder:text-white-700 outline-none bg-transparent flex-1"
           style={{
             width: "calc(100% - 30px)",
           }}
+          maxLength={50}
           defaultValue={entry.title}
-          type="text"
           onChange={() => {
             setDirty(true);
           }}
@@ -187,7 +187,7 @@ const WritePage = () => {
       id="writer-page"
       className="w-full h-full flex justify-center overflow-hidden flex-col-reverse md:flex-row"
     >
-      <div className="w-[320px] border-r border-primary-200 bg-white-500 hidden flex-col md:flex">
+      <div className="w-[320px] lg:w-[400px] border-r border-primary-200 bg-white-500 hidden flex-col md:flex">
         <div className="flex justify-between px-5 border-b-2 border-primary-200">
           <span className="font-bold capitalize text-2xl text-primary-500">
             Entries
