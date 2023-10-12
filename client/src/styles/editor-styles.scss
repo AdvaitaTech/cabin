@@ -1,8 +1,30 @@
-::selection {
-  background-color: var(--secondary-600);
-
+@mixin responsive($point) {
+  @if $point == sm {
+    @media (min-width: 640px) {
+      @content;
+    }
+  } @else if $point == md {
+    @media (min-width: 768px) {
+      @content;
+    }
+  } @else if $point == lg {
+    @media (min-width: 1024px) {
+      @content;
+    }
+  } @else if $point == xl {
+    @media (min-width: 1280px) {
+      @content;
+    }
+  } @else if $point == 2xl {
+    @media (min-width: 1536px) {
+      @content;
+    }
+  }
 }
 
+::selection {
+  background-color: var(--secondary-600);
+}
 #writer-page {
   // Base styles
   letter-spacing: -0.5px;
@@ -54,7 +76,8 @@
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    margin-left: -55px;
+    margin-top: 2px;
+    margin-left: -45px;
     gap: 10px;
 
     i {
@@ -62,12 +85,11 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      margin-right: 50px;
 
-       svg {
-         width: 30px;
-         height: 30px;
-       }
+      svg {
+        width: 25px;
+        height: 25px;
+      }
     }
 
     .block-menu {

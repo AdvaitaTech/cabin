@@ -14,7 +14,7 @@ const ListLoadingSkeleton = () => (
       y="0"
       width="100%"
       height="100%"
-      clip-path="url(#clip-path)"
+      clipPath="url(#clip-path)"
       style={{ fill: 'url("#fill")' }}
     ></rect>
     <defs>
@@ -47,7 +47,7 @@ const ListLoadingSkeleton = () => (
         <rect x="0" y="411" rx="0" ry="0" width="547" height="1" />
       </clipPath>
       <linearGradient id="fill">
-        <stop offset="0.599964" stop-color="#f5f6f7" stop-opacity="1">
+        <stop offset="0.599964" stopColor="#f5f6f7" stopOpacity="1">
           <animate
             attributeName="offset"
             values="-2; -2; 1"
@@ -56,7 +56,7 @@ const ListLoadingSkeleton = () => (
             repeatCount="indefinite"
           ></animate>
         </stop>
-        <stop offset="1.59996" stop-color="var(--white-600)" stop-opacity="1">
+        <stop offset="1.59996" stopColor="var(--white-600)" stopOpacity="1">
           <animate
             attributeName="offset"
             values="-1; -1; 2"
@@ -65,7 +65,7 @@ const ListLoadingSkeleton = () => (
             repeatCount="indefinite"
           ></animate>
         </stop>
-        <stop offset="2.59996" stop-color="#f5f6f7" stop-opacity="1">
+        <stop offset="2.59996" stopColor="#f5f6f7" stopOpacity="1">
           <animate
             attributeName="offset"
             values="0; 0; 3"

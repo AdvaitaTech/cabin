@@ -6,12 +6,7 @@ import {
   MutableRefObject,
   useState,
 } from "react";
-import {
-  Link,
-  ScrollRestoration,
-  useLoaderData,
-  useParams,
-} from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
   JournalEntry,
   saveJournalEntryRequest,
@@ -23,6 +18,8 @@ import SaveIcon from "./icons/SaveIcon";
 import clsx from "clsx";
 import EntryLoading from "./components/skeletons/EntryLoading";
 import ListLoadingSkeleton from "./components/skeletons/ListLoading";
+import ListIcon from "./icons/ListIcon";
+import CloseIcon from "./icons/CloseIcon";
 
 const fetchSummary = (html: string) => {
   const parser = new DOMParser();
@@ -42,11 +39,14 @@ const EntryEditor = ({
   setDirty: (value: boolean) => void;
 }) => {
   return (
-    <div className="w-[800px]">
+    <div className="max-w-xl md:max-w-[800px] w-full">
       <div className="flex mb-5 w-full items-center">
         <input
           id="journal-title"
-          className="text-3xl placeholder:text-white-700 outline-none bg-transparent flex-1"
+          className="text-xl sm:text-2xl md:text-3xl placeholder:text-white-700 outline-none bg-transparent flex-1"
+          style={{
+            width: "calc(100% - 30px)",
+          }}
           defaultValue={entry.title}
           type="text"
           onChange={() => {
@@ -54,7 +54,7 @@ const EntryEditor = ({
           }}
         />
         <button
-          className="text-2xl text-primary-500 disabled:text-primary-200"
+          className="text-2xl text-primary-500 disabled:text-primary-200 w-[30px]"
           id="save-button"
           onClick={() => {
             if (!editorRef.current) return;
@@ -102,7 +102,7 @@ const EntryList = ({
             key={id}
             onClick={() => setEntryId(id)}
             className={clsx(
-              "border-b border-primary-200 px-5 py-2 cursor-pointer block",
+              "border-b border-primary-200 px-5 py-2 cursor-pointer block last:border-0",
               {
                 "bg-white-600 pointer-events-none select-none": id === entryId,
               }
@@ -129,6 +129,7 @@ const EntryList = ({
 
 const WritePage = () => {
   const { entryId: entryParam } = useParams();
+  const [sliderShown, setSliderShown] = useState(false);
   const [entryId, setEntryId] = useState(entryParam);
   const {
     entry,
@@ -184,11 +185,13 @@ const WritePage = () => {
   return (
     <div
       id="writer-page"
-      className="w-full h-full flex justify-center overflow-hidden"
+      className="w-full h-full flex justify-center overflow-hidden flex-col-reverse md:flex-row"
     >
-      <div className="w-[400px] border-r border-primary-200 bg-white-500 flex flex-col">
+      <div className="w-[320px] border-r border-primary-200 bg-white-500 hidden flex-col md:flex">
         <div className="flex justify-between px-5 border-b-2 border-primary-200">
-          <span className="font-bold capitalize text-2xl">Entries</span>
+          <span className="font-bold capitalize text-2xl text-primary-500">
+            Entries
+          </span>
           <Link
             to="/write"
             className="flex items-center text-primary-500 text-[45px]"
@@ -215,7 +218,57 @@ const WritePage = () => {
           />
         ) : null}
       </div>
-      <div className="flex-1 pt-5 px-[150px] flex justify-center overflow-y-scroll bg-white-500">
+      <div className="w-full md:hidden block">
+        <div className="flex justify-between px-5 border-t-2 border-primary-500 shadow-xl shadow-primary-900">
+          <span
+            className="text-primary-500 flex items-center text-[40px]"
+            onClick={() => setSliderShown(true)}
+          >
+            <ListIcon />
+          </span>
+          <Link
+            to="/write"
+            className="flex items-center text-primary-500 text-[45px]"
+            reloadDocument
+          >
+            <PlusIcon />
+          </Link>
+        </div>
+        <div
+          className={clsx(
+            "absolute left-0 top-0 h-full w-0 transition-[width] ease-in-out duration-200 bg-white-500 z-10 overflow-hidden flex flex-col-reverse",
+            {
+              "w-full": sliderShown,
+            }
+          )}
+        >
+          <div className="flex justify-between px-5 border-t-2 border-primary-500 h-[50px]">
+            <span className="font-bold capitalize text-2xl">Entries</span>
+            <span
+              className="flex items-center text-[45px]"
+              onClick={() => setSliderShown(false)}
+            >
+              <CloseIcon />
+            </span>
+          </div>
+          <div
+            style={{ height: "calc(100% - 50px)" }}
+            className="overflow-auto"
+          >
+            {entries ? (
+              <EntryList
+                entries={entries}
+                entryId={entryId}
+                setEntryId={(id: string) => {
+                  setEntryId(id);
+                  setSliderShown(false);
+                }}
+              />
+            ) : null}
+          </div>
+        </div>
+      </div>
+      <div className="flex-1 pt-5 px-[50px] flex justify-center overflow-y-scroll bg-white-500">
         {isEntryLoading ? (
           <div>
             <EntryLoading />
